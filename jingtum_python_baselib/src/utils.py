@@ -5,31 +5,11 @@
  * Time: 11:25
  * Description: Ç®°üÒÀÀµµÄÄ£¿é
 """
-#BN = require('bn.js')
 #import random
-import binascii
-#random.randrange(0, 255)
-
-def byteValue(src):
-	#print
-	hexvalue = binascii.hexlify(src.encode()).upper()
-	#hexvalue = binascii.hexlify(str.encode('utf8')).upper()
-	if len(hexvalue) > 1:
-		#print(hexvalue)
-		return str(hexvalue)
-	else:
-		#print(hexvalue)
-		return str('0' + hexvalue)
-		
 class utils:
 	def bytesToHex(srcinfo):
-		#return "".join(str(map(byteValue, srcinfo)))
-		return "".join(map(byteValue, srcinfo))
-		#z = ""
-		#y = z.join(x)
-		#return y
-		#return ''.join(map(byteValue, srcinfo))		
-		#return map(byteValue, srcinfo) + ''
+		#srcinfo is a array
+		return ''.join( [ "%02X" % x for x in srcinfo ] ).strip()
 
 	def hexToBytes(srcinfo):
 		assert(len(srcinfo) % 2 == 0)

@@ -11,5 +11,5 @@ from utils import utils
 
 a=utils.hexToBytes('123344')
 print(a)
-a=utils.bytesToHex('abc')
+a=utils.bytesToHex([0x12,0x56,35])
 print(a)
