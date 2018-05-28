@@ -161,3 +161,22 @@ class Remote:
         # 这段需要修改
             return str(int(long(amount.value).mul(1000000.00)))
         return amount
+
+    #取消挂单
+    def buildOfferCancelTx(self,options):
+        tx =Transaction(self)
+        if not options:
+            tx.tx_json.obj = Error('invalid options type')
+            return tx
+        src = options.source or options.fromnow or options.account
+        sequence = options.sequence
+        if not utils.isValidAddress(src):
+            tx.tx_json.src = Error('invalid source address')
+            return tx
+        if not int(sequence) and not float(sequence):
+            tx.tx_json.sequence =Error('invalid sequence param')
+            return tx
+        tx.tx_json.TransactionType = 'OfferCancel'
+        tx.tx_json.Account = src
+        tx.tx_json.OfferSequence = int(sequence)
+        return tx
