@@ -1,3 +1,4 @@
+# coding=utf-8
 """
  * Created with PyCharm.
  * User: 彭诗杰
@@ -76,7 +77,7 @@ class utils:
 
     def isValidAmount0(amount):
         if (not amount):
-            return False;
+            return False
         # check amount currency
         if (not amount.currency or not isValidCurrency(amount.currency)):
             return False
