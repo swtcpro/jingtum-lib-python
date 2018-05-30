@@ -9,6 +9,7 @@ from websocket import create_connection
 from src.config import Config
 from src.logger import logger
 from eventemitter import EventEmitter
+import schedule
 import json
 
 test_evn = False
@@ -17,6 +18,8 @@ PROD_MODE = "product"
 
 
 class Server(Config):
+    online_states = ['syncing', 'tracking', 'proposing', 'validating', 'full', 'connected']
+
     def __init__(self, remote):
         super(Server, self).__init__()
         # global test_evn
@@ -30,6 +33,9 @@ class Server(Config):
         self.timer = 0
         # 此处可以设置生产环境或开发环境
         self.set_mode(TEST_MODE)
+
+        # 支持异步消息机制而设置的job变量，用在handle_close方法中
+        self.job = {}
 
     def set_mode(self, mode=TEST_MODE):
         if mode == TEST_MODE:
@@ -58,6 +64,8 @@ class WebSocketServer(Server):
             return e
 
         self.emitter.on("open", self.socket_open(callback=callback))
+        self.emitter.on('message', self.remote.handle_message)
+        self.emitter.on('close', self.handle_close)
 
     def socket_open(self, callback):
         """
@@ -70,18 +78,31 @@ class WebSocketServer(Server):
 
     # 代码进行到此处，接下来需要构建
     # 其他message、close和error的回调
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
+    def handle_close(self):
+        """
+        handle close and error exception
+        and should re-connect server after 3 seconds
+        :return:
+        """
+        if self.state == 'offline':
+            return
+        self.set_state('offline')
+        if self.timer != 0:
+            return
+        self.remote.emitter.emit('disconnect')
+        self.timer = 3
+        self.job = schedule.every(self.timer).seconds.do(self.connect_after_close)
+
+    def connect_after_close(self, err):
+        """
+        当socket断掉之后的重连
+        :return:
+        """
+        if not err:
+            # 对应handle_close中的schedule.every方法
+            schedule.cancel_job(self.job)
+            self.timer = 0
+
 
     def send(self, data):
         ret = None
