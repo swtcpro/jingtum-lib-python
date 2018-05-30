@@ -16,11 +16,11 @@ def __hexToString(h):
     strLength = len(h)
 
     if (strLength % 2 == 0):
-        a.extend(unichr(int(h[0: 1], 16)))
+        a.extend(chr(int(h[0: 1], 16)))
         i = 1
 
     for index in range(i, strLength, 2):
-        a.extend(unichr(int(h[index: index+2]), 16))
+        a.extend(chr(int(h[index: index+2]), 16))
 
     return ''.join(a)
 
