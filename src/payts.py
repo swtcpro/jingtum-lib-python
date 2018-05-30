@@ -38,10 +38,10 @@ class Transaction:
 	"""
 	def addMemo(self, memo):
 		if not isinstance(memo, str):
-			self.tx_json.memo_type = Error('invalid memo type')
+			self.tx_json.memo_type = Exception('invalid memo type')
 			return self
 		if (len(memo) > 2048):
-			self.tx_json.memo_len = Error('memo is too long')
+			self.tx_json.memo_len = Exception('memo is too long')
 			return self
 		_memo = {}
 		_memo.MemoData = __stringToHex(memo.encode('utf-8'))
@@ -54,7 +54,7 @@ class Transaction:
 	"""
 	def submit(self, callback):
 		for key in self.tx_json:
-			if instanceof(self.tx_json[key], Error):
+			if isinstance(self.tx_json[key], Exception):
 				return callback(self.tx_json[key].message)
         
 		data = {}

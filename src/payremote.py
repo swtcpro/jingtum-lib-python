@@ -33,7 +33,8 @@ config = {
 """
 def ToAmount(amount):
     if (amount.value and int(amount.value) > 100000000000):
-        return Error('invalid amount: amount\'s maximum value is 100000000000')
+		#return Error('invalid amount: amount\'s maximum value is 100000000000')
+        raise Exception('invalid amount: amount\'s maximum value is 100000000000')
     if (amount.currency == currency):
         # return new String(parseInt(Number(amount.value) * 1000000.00))
         return String(parseInt(bignumber(amount.value).mul(1000000.00)))
@@ -62,19 +63,19 @@ class Remote:
 	def buildPaymentTx(options):
 		tx = Transaction(self)
 		if not options: # typeof optionsÃ»ÓÐ×ª»»
-			tx.tx_json.obj = Error('invalid options type')
+			tx.tx_json.obj = Exception('invalid options type')
 			return tx
 		src = options.source or options.fromnow or options.account
 		dst = options.destination or options.to
 		amount = options.amount
 		if not baselib.isValidAddress(src):
-			tx.tx_json.src = Error('invalid source address')
+			tx.tx_json.src = Exception('invalid source address')
 			return tx
 		if not baselib.isValidAddress(dst):
-			tx.tx_json.dst = Error('invalid destination address')
+			tx.tx_json.dst = Exception('invalid destination address')
 			return tx
 		if not utils.isValidAmount(amount):
-			tx.tx_json.amount = Error('invalid amount')
+			tx.tx_json.amount = Exception('invalid amount')
 			return tx
 
 		tx.tx_json.TransactionType = 'Payment'
@@ -89,13 +90,13 @@ class Remote:
 		limit = options.limit
 
 		if not baselib.isValidAddress(src):
-			tx.tx_json.src = Error('invalid source address')
+			tx.tx_json.src = Exception('invalid source address')
 			return tx
 		if not baselib.isValidAddress(des):
-			tx.tx_json.des = Error('invalid target address')
+			tx.tx_json.des = Exception('invalid target address')
 			return tx
 		if not utils.isValidAmount(limit):
-			tx.tx_json.limit = Error('invalid amount')
+			tx.tx_json.limit = Exception('invalid amount')
 			return tx
 
 		if options.type == 'unfreeze': 
@@ -119,10 +120,10 @@ class Remote:
 		quality_in = options.quality_in
 
 		if not baselib.isValidAddress(src):
-			tx.tx_json.src = Error('invalid source address')
+			tx.tx_json.src = Exception('invalid source address')
 			return tx
 		if not utils.isValidAmount(limit):
-			tx.tx_json.limit = Error('invalid amount')
+			tx.tx_json.limit = Exception('invalid amount')
 			return tx
 
 		tx.tx_json.TransactionType = 'TrustSet'
@@ -149,15 +150,15 @@ class Remote:
 	def buildRelationTx(self, options):
 		tx = Transaction(self)
 		if not options:
-			tx.tx_json.obj =  Error('invalid options type')
+			tx.tx_json.obj =  Exception('invalid options type')
 			return tx
 		if not ~Transaction.RelationTypes.index(options.type):
-			tx.tx_json.type = Error('invalid relation type')
+			tx.tx_json.type = Exception('invalid relation type')
 			return tx
 		if options.type == 'trust':
 			return self.__buildTrustSet(options, tx)
 		elif options.type == 'authorize' or  \
 		 options.type == 'freeze' or options.type == 'unfreeze':
 			return self.__buildRelationSet(options, tx)
-		tx.tx_json.msg = Error('build relation set should not go here')
+		tx.tx_json.msg = Exception('build relation set should not go here')
 		return tx
