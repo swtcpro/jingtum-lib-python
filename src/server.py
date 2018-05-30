@@ -102,7 +102,30 @@ class WebSocketServer(Server):
             # 对应handle_close中的schedule.every方法
             schedule.cancel_job(self.job)
             self.timer = 0
+            self.remote.emitter.emit('reconnect')
 
+    def set_state(self, state):
+        if state == self.state:
+            return
+        self.state = state
+        self.connected = (state == 'online')
+        if not self.connected:
+            self.opened = False
+
+    def send_message(self, command, data):
+        """
+        refuse to send msg if connection blows out
+        :param command:
+        :param data:
+        :return:
+        """
+        if not self.opened:
+            return
+        req_id = (self.id + 1)
+        msg = dict({'id': req_id, 'command': command}, **data)
+        self.ws.send(json.dump(msg))
+
+        return req_id
 
     def send(self, data):
         ret = None

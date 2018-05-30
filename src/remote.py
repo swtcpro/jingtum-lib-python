@@ -11,6 +11,7 @@
 """
 import json
 from inspect import isfunction
+from numbers import Number
 
 from src.server import Server, WebSocketServer
 from src.request import Request
@@ -54,15 +55,15 @@ class Remote:
 
         if not data:
             return
-        if (data.type == 'ledgerClosed'):
+        if data.type == 'ledgerClosed':
             self.handle_ledger_closed(data)
-        elif (data.type == 'serverStatus'):
+        elif data.type == 'serverStatus':
             self.handle_server_status(data)
-        elif (data.type == 'response'):
+        elif data.type == 'response':
             self.handle_response(data)
-        elif (data.type == 'transaction'):
+        elif data.type == 'transaction':
             self.handle_transaction(data)
-        elif (data.type == 'path_find'):
+        elif data.type == 'path_find':
             self.handle_path_find(data)
 
     def handle_ledger_closed(self, data):
@@ -72,7 +73,7 @@ class Remote:
         :param data:
         :return:
         """
-        if (data.ledger_index > self.status.ledger_index):
+        if data.ledger_index > self.status.ledger_index:
             self.status.ledger_index = data.ledger_index
             self.status.ledger_time = data.ledger_time
             self.status.reserve_base = data.reserve_base
@@ -93,12 +94,58 @@ class Remote:
     def update_server_status(self, data):
         self.status.load_base = data.load_base
         self.status.load_factor = data.load_factor
-        if (data.pubkey_node):
+        if data.pubkey_node:
             self.status.pubkey_node = data.pubkey_node
 
         self.status.server_status = data.server_status
         online = ~Server.online_states.indexOf(data.server_status)
-        self.server._setState(online='online' if online else 'offline')
+        self.server.set_state('online' if online else 'offline')
+
+    def handle_response(self, data):
+        """
+        handle response by every websocket request
+        :param data:
+        :return:
+        """
+        req_id = data.id
+        if isinstance(req_id, Number) or req_id < 0 or req_id > self.requests.__len__():
+            return
+        request = self.requests[req_id]
+        # pass process it when null callback
+        del self.requests[req_id]
+        del data.id
+
+        # check if data contain server info
+        if data.result and data.status == 'success' and data.result.server_status:
+            self.update_server_status(data.result)
+
+        # return to callback
+        if data.status == 'suceess':
+            result = request.filter(data.result)
+            request.callback(None, result)
+        elif data.status == 'error':
+            request.callback(data.error_message or data.error_exception)
+
+    def handle_transaction(self, data):
+        """
+        handle transaction type response
+        TODO supply more friendly transaction data
+        :param data:
+        :return:
+        """
+        tx = data.transaction.hash
+        if self.cache.get(tx):
+            return
+        self.cache.set(tx, 1)
+        self.emitter.emit('transactions', data)
+
+    def handle_path_find(self, data):
+        """
+        emit path find date to other
+        :param data:
+        :return:
+        """
+        self.emitter.emit('path_find', data)
 
     def submit(self, command, data, filter, callback):
         """
@@ -109,37 +156,17 @@ class Remote:
         :param callback:
         :return:
         """
-        if (isfunction(callback)):
+        if isfunction(callback):
             req_id = self.server.send_message(command, data)
             self.requests[req_id] = {
-                # 此处还有些代码逻辑没实现
-                # 根据command, data, filter, callback生成新的request对象
                 command: command,
                 data: data,
                 filter: filter,
                 callback: callback
             }
 
-    # def subscribe(self, address, secret):
-    #     data = {
-    #         "command": "subscribe",
-    #         "account": address,
-    #         "secret": secret
-    #     }
-    #     self.send(data)
-    #     return None
-    #
-    # def unsubscribe(self, address):
-    #     data = {
-    #         "command": "unsubscribe",
-    #         "account": address,
-    #     }
-    #     self.send(data)
-    #     return None
-
     def subscribe(self, streams):
         request = Request(self, "subscribe")
         if streams is not None:
             request.message.streams = streams if isinstance(streams, list) else [streams]
-
         return request
