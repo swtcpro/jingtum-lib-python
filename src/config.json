@@ -10,7 +10,8 @@
     "issue_custom_tum": "IssueTum",
     "query_issue": "QueryIssue",
     "query_custom_tum": "QueryTum",
-    "fee": 10000
+    "fee": 10000,
+    "currency":"SWT"
   },
   "dev": {
     "api_address": "https://tapi.jingtum.com:443", 

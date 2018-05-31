@@ -31,7 +31,7 @@ class Config(object):
         MIN_ACTIVE_AMT = config["constant"]["min_active_amt"]
         SDK_VERSION = config["constant"]["sdk_version"]
         FEE = config["constant"]["fee"]
-
+        currency=config["constant"]["currency"]
         issue_custom_tum = config["constant"]["issue_custom_tum"]
         query_issue = config["constant"]["query_issue"]
         query_custom_tum = config["constant"]["query_custom_tum"]
