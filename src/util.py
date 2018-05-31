@@ -5,6 +5,7 @@
  * Time: 23:35
  * Description: 
 """
+
 from numbers import Number
 
 from jingtum_python_baselib.src.wallet import Wallet
@@ -217,7 +218,15 @@ def process_tx(txn, account):
             result.destination = tx.Destination
 
     # add memo
-    #
-    #
-    #
-    #
+    from encodings.utf_8 import decode
+    if isinstance(tx.Memos, list) and tx.Memos.__len__() > 0:
+        for Memo in tx.Memos:  # 此处认定数组Memos中的元素为字典
+            for key in Memo:
+                try:
+                    Memo[key] = decode(__hexToString(Memo[key]))
+                except:
+                    Memo[key] = Memo[key]
+        result.memos.append(Memo)
+
+    result.effects = []
+    # no effect, return now
