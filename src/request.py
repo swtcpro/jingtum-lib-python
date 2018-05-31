@@ -1,3 +1,4 @@
+# coding=utf-8
 """
  * Created with PyCharm.
  * User: 彭诗杰
@@ -34,7 +35,7 @@ class Request:
             self.message['ledger_index'] = ledger
         elif (isinstance(ledger, str) and is_number(ledger)):
             self.message['ledger_index'] = ledger
-        elif (re.match('^[A-F0-9]+$',ledger) is not None):
+        elif (re.match('^[A-F0-9]+$', ledger) is not None):
             self.message['ledger_index'] = ledger
         else:
             self.message['ledger_index'] = 'validated'

@@ -1,4 +1,7 @@
+# coding=utf-8
 from src.config import Config
+import math
+from src.utils.utils import is_number, utils
 
 fee = Config.FEE or 10000
 
@@ -13,11 +16,11 @@ def __hexToString(h):
     strLength = len(h)
 
     if (strLength % 2 == 0):
-        a.extend(unichr(int(h[0: 1], 16)))
+        a.extend(chr(int(h[0: 1], 16)))
         i = 1
 
     for index in range(i, strLength, 2):
-        a.extend(unichr(int(h[index: index+2]), 16))
+        a.extend(chr(int(h[index: index+2]), 16))
 
     return ''.join(a)
 
@@ -26,13 +29,53 @@ def __stringToHex(s):
     result = ''
     for c in s:
         b = ord(c)
-        #转换成16进制的ASCII码
+        # 转换成16进制的ASCII码
         if b < 16:
             result += '0'+hex(b).replace('0x', '')
         else:
             result += hex(b).replace('0x', '')
 
     return result
+
+
+def safe_int(num):
+    try:
+        return int(num)
+    except ValueError:
+        result = []
+        for c in num:
+            if not ('0' <= c <= '9'):
+                break
+            result.append(c)
+        if len(result) == 0:
+            return 0
+        return int(''.join(result))
+
+
+def Number(num):
+    if(not is_number(num)):
+        return float('nan')
+    if(isinstance(num, bool) and num):
+        return 1
+    if(isinstance(num, bool) and not num):
+        return 0
+    if(isinstance(num, (int, float))):
+        return num
+    if '.' in num:
+        return float(num)
+    else:
+        return int(num)
+
+
+def MaxAmount(amount):
+    if (isinstance(amount, str) and is_number(amount)):
+        _amount = safe_int(Number(amount) * (1.0001))
+        return str(_amount)
+    if (isinstance(amount, dict) and utils.isValidAmount(amount)):
+        _value = Number(amount['value']) * (1.0001)
+        amount['value'] = str(_value)
+        return amount
+    return Exception('invalid amount to max')
 
 
 class Transaction:
@@ -113,3 +156,30 @@ class Transaction:
 
     def setSecret(self, secret):
         self._secret = secret
+
+    """
+    * just only memo data
+    * @param memo
+    """
+
+    def addMemo(self, memo):
+        if (isinstance(memo, str)):
+            self.tx_json['memo_type'] = TypeError('invalid memo type')
+            return self
+        if (len(memo) > 2048):
+            self.tx_json['memo_len'] = TypeError('memo is too long')
+            return self
+        _memo = {}
+        _memo['MemoData'] = __stringToHex(memo.encode("UTF-8"))
+        self.tx_json['Memos'] = (self.tx_json['Memos']
+                                 or []).append({'Memo': _memo})
+
+    def setFee(self, fee):
+        _fee = safe_int(fee)
+        if (math.isnan(_fee)):
+            self.tx_json['Fee'] = TypeError('invalid fee')
+            return self
+        if (fee < 10):
+            self.tx_json['Fee'] = TypeError('fee is too low')
+            return self
+        self.tx_json['Fee'] = _fee
