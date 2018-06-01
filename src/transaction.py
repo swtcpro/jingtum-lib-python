@@ -2,6 +2,7 @@
 from src.config import Config
 import math
 from src.utils.utils import is_number, utils
+import json
 
 fee = Config.FEE or 10000
 
@@ -163,7 +164,7 @@ class Transaction:
     """
 
     def addMemo(self, memo):
-        if (isinstance(memo, str)):
+        if (not isinstance(memo, str)):
             self.tx_json['memo_type'] = TypeError('invalid memo type')
             return self
         if (len(memo) > 2048):
@@ -183,3 +184,46 @@ class Transaction:
             self.tx_json['Fee'] = TypeError('fee is too low')
             return self
         self.tx_json['Fee'] = _fee
+
+    """
+    * set a path to payment
+    * this path is repesented as a key, which is computed in path find
+    * so if one path you computed self is not allowed
+    * when path set, sendmax is also set.
+    * @param path
+    """
+    def setPath (self,key):
+        # sha1 string
+        if (not isinstance(key,str) and len(key) != 40):
+            return Exception('invalid path key')
+
+        item = self._remote._paths.get(key)
+        if (item is not None) :
+            return Exception('non exists path key')
+
+        if(item['path'] == '[]'):#沒有支付路径，不需要传下面的参数
+            return
+        path = json.load(item.path)
+        self.tx_json['Paths'] = path
+        amount = MaxAmount(item['choice'])
+        self.tx_json['SendMax'] = amount
+
+    """
+    * limit send max amount
+    * @param amount
+    """
+    def setSendMax(self,amount):
+        if (utils.isValidAmount(amount) is not None):
+            return Exception('invalid send max amount')
+        self.tx_json['SendMax'] = amount
+
+
+    """
+    * transfer rate
+    * between 0 and 1, type is number
+    * @param rate
+    """
+    def setTransferRate(self,rate):
+        if (not isinstance(rate,(int,float)) or rate < 0 or rate > 1) :
+            return Exception('invalid transfer rate')
+        self.tx_json['TransferRate'] = (rate + 1) * 1e9

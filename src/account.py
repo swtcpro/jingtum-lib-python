@@ -9,7 +9,7 @@
  * @constructor
 """
 from eventemitter import EventEmitter
-from src import utils
+from src import util
 
 
 class Account:
@@ -18,6 +18,7 @@ class Account:
         self.remote = remote
         self.emitter = EventEmitter()
         self.accounts = {}
+        self.account = {}
 
         self.emitter.on('newListener', self.new_listener)
         self.emitter.on('removeListener', self.remove_listener)
@@ -26,25 +27,21 @@ class Account:
     def new_listener(self, account, listener):
         if account == 'removeListener':
             return
-        if not utils.is_valid_address(account):
-            # 此处有疑问，待大家一起讨论
-            #
-            #
-            # self.account = raise Exception('invalid account')
-            raise Exception('invalid account')
+        if not util.is_valid_address(account):
+            self.account = Exception('invalid account')
         self.accounts[account] = listener
 
     def remove_listener(self, account):
-        if not utils.is_valid_address(account):
+        if not util.is_valid_address(account):
             raise Exception('invalid account')
 
         del self.accounts[account]
 
     def info_affected_account(self, data):
         # dispatch
-        accounts = utils.affected_accounts(data)
+        accounts = util.affected_accounts(data)
         for account in accounts:
             callback = self.accounts[account]
-            tx = utils.process_tx(data, account)
+            tx = util.process_tx(data, account)
             if callback:
                 callback(tx)
