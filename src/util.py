@@ -142,6 +142,14 @@ def format_args(Args):
     pass
 
 
+def is_amount_zero(param):
+    pass
+
+
+def Amount_subtract(param, param1):
+    pass
+
+
 def process_tx(txn, account):
     """
     process transaction in view of account
@@ -230,3 +238,53 @@ def process_tx(txn, account):
 
     result.effects = []
     # no effect, return now
+    if not meta or meta.TransactionResult != 'tesSUCCESS':
+        return result
+
+    # process effects
+    for n in meta.AffectedNodes:
+        node = process_affect_node(n)
+        effect = dict()
+        # now only get offer related effects, need to process other entry type
+        if node.entryType == 'offer':
+            # for new and cancelled offers
+            fieldSet = node.fields
+            sell = node.fields.Flags and LEDGER_FLAGS.offer.Sell
+            # current account offer
+            if node.fields.Account == account:
+                # 1. offer_partially_funded
+                if node.diffType == 'ModifiedNode' or (
+                        node.diffType == 'DeletedNode' and node.fieldsPrev.TakerGets and not
+                is_amount_zero(parse_amount(node.fieldsFinal.TakerGets))):
+                    effect.effect = 'offer_partially_funded'
+                    effect.counterparty = {'account': tx.Account, 'seq': tx.Sequence, 'hash': tx.hash}
+                    if node.diffType != 'DeletedNode':
+                        # no need partially funded must remains offers
+                        effect.remaining = not is_amount_zero(parse_amount(node.fields.TakerGets))
+                    else:
+                        effect.cancelled = True
+
+            effect.gets = parse_amount(fieldSet.TakerGets)
+            effect.pays = parse_amount(fieldSet.TakerPays)
+            effect.got = Amount_subtract(parse_amount(node.fieldsPrev.TakerPays), parse_amount(node.fields.TakerPays))
+            effect.paid = Amount_subtract(parse_amount(node.fieldsPrev.TakerGets), parse_amount(node.fields.TakerGets))
+            effect.type = 'sold' if sell else effect.type = 'bought'
+        else:
+            # offer_funded, offer_created or offer_cancelled offer effect
+            if node.fieldsPrev.TakerPays:
+                node.fieldsPrev.TakerPays = 'offer_funded'
+            else:
+                node.fieldsPrev.TakerPays = 'offer_cancelled'
+
+            if node.diffType == 'CreatedNode':
+                effect.effect = 'offer_created'
+            else:
+                effect.effect = node.fieldsPrev.TakerPays
+
+            if effect.effect == 'offer_funded':
+                fieldSet = node.fieldsPrev
+                effect.counterparty = {'account': tx.Account, 'seq': tx.Sequence, 'hash': tx.hash}
+                effect.got = Amount_subtract(parse_amount(node.fieldsPrev.TakerPays),
+                                             parse_amount(node.fields.TakerPays))
+                effect.paid = Amount_subtract(parse_amount(node.fieldsPrev.TakerGets),
+                                              parse_amount(node.fields.TakerGets))
