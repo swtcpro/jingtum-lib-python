@@ -34,66 +34,66 @@ class UInt160(UInt):
         return self
 
 
-def get_version(self):
-    return self._version_byte
+    def get_version(self):
+        return self._version_byte
 
 
-# value = NaN on error.
-def parse_json(self,j):
-    # Canonicalize and validate
-    if config.accounts and (j in config.accounts):
-        j = config.accounts[j].account
+    # value = NaN on error.
+    def parse_json(self,j):
+        # Canonicalize and validate
+        if config.accounts and (j in config.accounts):
+            j = config.accounts[j].account
 
 
-    if isinstance(j,int)and not j:
-        # Allow raw numbers - DEPRECATED
-        # This is used mostly by the test suite and is supported
-        # as a legacy feature only. DO NOT RELY ON THIS BEHAVIOR.
-        self._value = int(str(j))
-        self._version_byte = Base.VER_ACCOUNT_ID
-    elif isinstance(j,str):
-        self._value = None
-    elif j[0] is 'j':
-        self._value = Base.decode_check(Base.VER_ACCOUNT_ID, j)
-        self._version_byte = Base.VER_ACCOUNT_ID
-    else:
-        self.parse_hex(j)
-
-
-    self._update()
-    return self
-
-
-def parse_generic(self,j):
-    # UInt.prototype.parse_generic.call(this, j)
-
-    if not self._value:
-        if isinstance(j,str) and j[0] is 'j':
+        if isinstance(j,int)and not j:
+            # Allow raw numbers - DEPRECATED
+            # This is used mostly by the test suite and is supported
+            # as a legacy feature only. DO NOT RELY ON THIS BEHAVIOR.
+            self._value = int(str(j))
+            self._version_byte = Base.VER_ACCOUNT_ID
+        elif isinstance(j,str):
+            self._value = None
+        elif j[0] is 'j':
             self._value = Base.decode_check(Base.VER_ACCOUNT_ID, j)
-
-
-
-    self._update()
-    return self
-
-
-# XXX Json form should allow 0 and 1, C++ doesn't currently allow it.
-def to_json(self,opts):
-    opts = optsor {}
-
-    if isinstance(self._value,int):
-        # If this value has a type, return a Base58 encoded string.
-        if isinstance(self._version_byte,int):
-            output = Base.encode_check(self._version_byte, self.to_bytes())
-
-            if opts.gateways and output in opts.gateways:
-                output = opts.gateways[output]
-
-
-            return output
+            self._version_byte = Base.VER_ACCOUNT_ID
         else:
-            return self.to_hex()
+            self.parse_hex(j)
 
 
-    return None
+        self._update()
+        return self
+
+
+    def parse_generic(self,j):
+        # UInt.prototype.parse_generic.call(this, j)
+
+        if not self._value:
+            if isinstance(j,str) and j[0] is 'j':
+                self._value = Base.decode_check(Base.VER_ACCOUNT_ID, j)
+
+
+
+        self._update()
+        return self
+
+
+    # XXX Json form should allow 0 and 1, C++ doesn't currently allow it.
+    def to_json(self,opts):
+        opts = optsor {}
+
+        if isinstance(self._value,int):
+            # If this value has a type, return a Base58 encoded string.
+            if isinstance(self._version_byte,int):
+                output = Base.encode_check(self._version_byte, self.to_bytes())
+
+                if opts.gateways and output in opts.gateways:
+                    output = opts.gateways[output]
+
+
+                return output
+            else:
+                return self.to_hex()
+
+
+        return None
 
