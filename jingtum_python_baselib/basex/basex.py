@@ -12,17 +12,17 @@
 # Merged Buffer refactorings from base58-native by Stephen Pair
 # Copyright (c) 2013 BitPay Inc
 ALPHABET = 'jpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65rkm8oFqi1tuvAxyz'
+BASE = len(ALPHABET)
 
 class basex():
-	def __init__():
-		ALPHABET_MAP = {}
-		BASE = len(ALPHABET)
-		LEADER = ALPHABET[0]
+	def __init__(self):
+		self.ALPHABET_MAP = {}
+		self.LEADER = ALPHABET[0]
 
 		# pre-compute lookup table
 		i = 0
 		while i < len(ALPHABET):
-			ALPHABET_MAP[ALPHABET[i]] = i
+			self.ALPHABET_MAP[ALPHABET[i]] = i
 			i += 1
 
 	def encode (source):
@@ -36,15 +36,15 @@ class basex():
 			carry = source[i]
 			while j < len(digits):
 				carry += digits[j] << 8
-				digits[j] = carry % BASE
+				digits.append(carry % BASE)
 				carry = (carry / BASE) | 0
 				j += 1
-			i += 1
 
 			while (carry > 0):
-				digits.push(carry % BASE)
+				digits.append(carry % BASE)
 				carry = (carry / BASE) | 0
 
+			i += 1
 		string = ''
 
 		# deal with leading zeros
@@ -52,6 +52,7 @@ class basex():
 		while source[k] == 0 and k < len(source) - 1:
 			string += ALPHABET[0]
 			k += 1
+
 		# convert digits to a string
 		q = len(digits) - 1
 		while q >= 0:
@@ -60,15 +61,15 @@ class basex():
 
 		return string
 
-	def decodeUnsafe(string):
+	def decodeUnsafe(self, string):
 		if len(string) == 0:
 			return []
 
 		bytes = [0]
 		i = 0
 		while i < len(string):
-			value = ALPHABET_MAP[string[i]]
-			if (value == undefined):
+			value = self.ALPHABET_MAP[string[i]]
+			if not value:
 				return
 
 			j = 0
@@ -80,20 +81,21 @@ class basex():
 				j += 1
 
 			while (carry > 0):
-				bytes.push(carry & 0xff)
+				bytes.append(carry & 0xff)
 				carry >>= 8
-				i += 1
+
+			i += 1
 
 		# deal with leading zeros
 		k = 0
-		while string[k] == LEADER and k < len(string) - 1:
-			bytes.push(0)
+		while string[k] == self.LEADER and k < len(string) - 1:
+			bytes.append(0)
 			k += 1
 
 		return bytes.reverse()
 
 	def decode(string):
-		array = decodeUnsafe(string)
+		array = basex.decodeUnsafe(string)
 		if (array): 
 			return array
 

@@ -6,9 +6,13 @@
  * Time: 14:57
  * Description:
 """
-import re
-from numbers import Number
+import sys
+sys.path.append("..")
 
+from jingtum_python_baselib.src.utils import utils as baselib
+from src.config import Config
+
+import re
 
 def is_number(s):
     """
@@ -36,6 +40,10 @@ LEDGER_STATES = ['current', 'closed', 'validated']
 
 
 class utils:
+    # input num may contain one '.' and one '-'
+    def isNum(amount):
+        return str(amount).replace('.', '', 1).replace('-', '', 1).isdigit()
+
     def isValidCurrency(currency):
         CURRENCY_RE = '^([a-zA-Z0-9]{3,6}|[A-F0-9]{40})$'
         if (not currency or not isinstance(currency, str) or currency == ''):
@@ -50,21 +58,20 @@ class utils:
      * @param amount
      * @returns {boolean}
     """
-
     def isValidAmount(amount):
         if (not amount):
             return False
         # check amount value
-        if ((not amount.value and amount.value != 0) or Number(amount.value) == None):
+        if ((not amount.value and amount.value != 0) or not utils.isNum(amount.value)):
             return False
         # check amount currency
         if (not amount.currency or not utils.isValidCurrency(amount.currency)):
             return False
         # native currency issuer is empty
-        if (amount.currency == currency and amount.issuer != ''):
+        if (amount.currency == Config.currency and amount.issuer != ''):
             return False
         # non native currency issuer is not allowed to be empty
-        if (amount.currency != currency
+        if (amount.currency != Config.currency
                 and not baselib.isValidAddress(amount.issuer)):
             return False
         return True
@@ -79,13 +86,13 @@ class utils:
         if (not amount):
             return False
         # check amount currency
-        if (not amount.currency or not isValidCurrency(amount.currency)):
+        if (not amount.currency or not utils.isValidCurrency(amount.currency)):
             return False
         # native currency issuer is empty
-        if (amount.currency == currency and amount.issuer != ''):
+        if (amount.currency == Config.currency and amount.issuer != ''):
             return False
         # non native currency issuer is not allowed to be empty
-        if (amount.currency != currency
+        if (amount.currency != Config.currency
                 and not baselib.isValidAddress(amount.issuer)):
             return False
         return True
