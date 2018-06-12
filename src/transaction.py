@@ -26,7 +26,7 @@ def __hexToString(h):
     return ''.join(a)
 
 
-def __stringToHex(s):
+def stringToHex(s):
     result = ''
     for c in s:
         b = ord(c)
@@ -171,7 +171,7 @@ class Transaction:
             self.tx_json['memo_len'] = TypeError('memo is too long')
             return self
         _memo = {}
-        _memo['MemoData'] = __stringToHex(memo.encode("UTF-8"))
+        _memo['MemoData'] = stringToHex(memo.encode("UTF-8"))
         self.tx_json['Memos'] = (self.tx_json['Memos']
                                  or []).append({'Memo': _memo})
 
@@ -216,7 +216,6 @@ class Transaction:
         if (utils.isValidAmount(amount) is not None):
             return Exception('invalid send max amount')
         self.tx_json['SendMax'] = amount
-
 
     """
     * transfer rate
@@ -303,3 +302,62 @@ class Transaction:
             callback(None, self.tx_json['blob'])
 
         remote.connect(connect_callback)
+
+    """
+     * set secret
+     * @param secret
+     * come from transaction.js
+     * 传入密钥
+    """
+    def setSecret(self, secret):
+        self._secret = secret
+
+    """
+     * just only memo data
+     * @param memo
+     * 设置备注
+    """
+    def addMemo(self, memo):
+        if not isinstance(memo, str):
+            self.tx_json.memo_type = Exception('invalid memo type')
+            return self
+        if (len(memo) > 2048):
+            self.tx_json.memo_len = Exception('memo is too long')
+            return self
+        _memo = {}
+        _memo.MemoData = stringToHex(memo.encode('utf-8'))
+        self.tx_json.Memos = self.tx_json.Memos + _memo
+
+    """
+     * submit request to server
+     * @param callback
+     * 提交支付
+    """
+    def submitblob(self, callback):
+        if Exception:
+            return callback('sign error: ', Exception)
+        else:
+            data = {
+                "tx_blob": self.tx_json.blob
+            }
+            self._remote.submit('submit', data, self._filter, callback)
+
+    def submit(self, callback):
+        for key in self.tx_json:
+            if isinstance(self.tx_json[key], Exception):
+                return callback(self.tx_json[key].message)
+
+        data = {}
+        if self._remote._local_sign:  # 签名之后传给底层
+            self.sign(Transaction.submitblob(self, callback))
+        elif self.tx_json.TransactionType == 'Signer':  # 直接将blob传给底层
+            data = {
+                "tx_blob": self.tx_json.blob
+            };
+            self._remote.submit('submit', data, self._filter, callback)
+        else:  # 不签名交易传给底层
+            data = {
+                "secret": self._secret,
+                "tx_json": self.tx_json
+            }
+            self._remote.submit('submit', data, self._filter, callback)
