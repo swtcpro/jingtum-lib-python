@@ -44,7 +44,7 @@ def ToAmount(amount):
 class Remote:
     def __init__(self, options):
         self.opts = options
-        self.local_sign = options.local_sign
+        self.local_sign = options['local_sign']
         self.server = WebSocketServer(self)
         self.status = {"ledger_index": 0}
         self.requests = {}
