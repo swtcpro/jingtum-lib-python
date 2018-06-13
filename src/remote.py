@@ -18,7 +18,7 @@ from src.request import Request
 from src.utils.cache import LRUCache
 from eventemitter import EventEmitter
 
-#rename jingtum-python-baselib to jingtum_python_baselib as python seem can't recognize -
+# rename jingtum-python-baselib to jingtum_python_baselib as python seem can't recognize -
 from jingtum_python_baselib.src.utils import utils as baselib
 from src.transaction import Transaction
 from src.utils.utils import utils
@@ -33,16 +33,19 @@ LEDGER_OPTIONS = ['closed', 'header', 'current']
  * @param amount
  * @returns {Amount}
 """
+
+
 def ToAmount(amount):
     if (amount.value and int(amount.value) > 100000000000):
         return Exception('invalid amount: amount\'s maximum value is 100000000000')
     if (amount.currency == Config.currency):
         # return new String(parseInt(Number(amount.value) * 1000000.00))
-        return str(int(amount.value*1000000.00))
+        return str(int(amount.value * 1000000.00))
     return amount
 
+
 class Remote:
-    def __init__(self, options):
+    def __init__(self, options={'server': 'ws://ts5.jingtum.com:5020', 'local_sign': True}):
         self.opts = options
         self.local_sign = options['local_sign']
         self.server = WebSocketServer(self)
@@ -58,7 +61,7 @@ class Remote:
         :param callback:(error, result)
         :return:
         """
-        if self.server:
+        if not self.server:
             return callback('server not ready')
         self.server.connect(callback)
 
@@ -179,16 +182,16 @@ class Remote:
         if isfunction(callback):
             req_id = self.server.send_message(command, data)
             self.requests[req_id] = {
-                command: command,
-                data: data,
-                filter: filter,
-                callback: callback
+                'command': command,
+                'data': data,
+                'filter': filter,
+                'callback': callback
             }
 
     def subscribe(self, streams):
-        request = Request(self, "subscribe")
-        if streams is not None:
-            request.message.streams = streams if isinstance(streams, list) else [streams]
+        request = Request(self, "subscribe", None)
+        if streams:
+            request.message['streams'] = streams if isinstance(streams, list) else [streams]
         return request
 
     """
@@ -201,6 +204,7 @@ class Remote:
      * 创建支付对象
      * come from remote.js
     """
+
     def buildPaymentTx(self, options):
         tx = Transaction(self)
         if not options:  # typeof options没有转换
@@ -224,7 +228,6 @@ class Remote:
         tx.tx_json.Amount = ToAmount(amount)
         tx.tx_json.Destination = dst
         return tx
-
 
     def __buildRelationSet(options, tx):
         src = options.source or options.fromnow or options.account
@@ -289,6 +292,7 @@ class Remote:
      * @returns {Transaction}
      * 创建关系对象
     """
+
     def buildRelationTx(self, options):
         tx = Transaction(self)
         if not options:

@@ -47,16 +47,16 @@ class Server(Config):
 
 
 class WebSocketServer(Server):
-    def __init__(self):
-        super(WebSocketServer, self).__init__()
+    def __init__(self, remote):
+        super(WebSocketServer, self).__init__(remote)
         self._shutdown = False
         self.emitter = EventEmitter()
 
     def connect(self, callback):
         if self.connected:
             return
-        if self.ws is None:
-            self.ws.close()
+        # if self.ws is None:
+        #     self.ws.close()
         try:
             self.ws = create_connection(self.ws_address)
         except Exception as e:
@@ -74,7 +74,7 @@ class WebSocketServer(Server):
         """
         self.opened = True
         req = self.remote.subscribe(["ledger", "server"])
-        req.submit(callback=callback)
+        req.submit(callback)
 
     # 代码进行到此处，接下来需要构建
     # 其他message、close和error的回调
@@ -123,7 +123,7 @@ class WebSocketServer(Server):
             return
         req_id = (self.id + 1)
         msg = dict({'id': req_id, 'command': command}, **data)
-        self.ws.send(json.dump(msg))
+        self.ws.send(json.dumps(msg))
 
         return req_id
 
