@@ -10,19 +10,18 @@
  * }
 """
 import json
-from inspect import isfunction
 from numbers import Number
 
-from src.server import Server, WebSocketServer
-from src.request import Request
-from src.utils.cache import LRUCache
 from eventemitter import EventEmitter
 
 # rename jingtum-python-baselib to jingtum_python_baselib as python seem can't recognize -
 from jingtum_python_baselib.src.utils import utils as baselib
-from src.transaction import Transaction
-from src.utils.utils import utils
 from src.config import Config
+from src.request import Request
+from src.server import Server, WebSocketServer
+from src.transaction import Transaction
+from src.utils.cache import LRUCache
+from src.utils.utils import utils
 
 LEDGER_OPTIONS = ['closed', 'header', 'current']
 
@@ -62,7 +61,7 @@ class Remote:
         :return:
         """
         if not self.server:
-            return callback('server not ready')
+            return 'server not ready'
         self.server.connect(callback)
 
     def is_connected(self):
@@ -179,14 +178,14 @@ class Remote:
         :param callback:
         :return:
         """
-        if isfunction(callback):
-            req_id = self.server.send_message(command, data)
-            self.requests[req_id] = {
-                'command': command,
-                'data': data,
-                'filter': filter,
-                'callback': callback
-            }
+        req_id = self.server.send_message(command, data, callback)
+        self.requests[req_id] = {
+            'command': command,
+            'data': data,
+            'filter': filter,
+            'callback': callback
+        }
+        # callback()
 
     def subscribe(self, streams):
         request = Request(self, "subscribe", None)
@@ -206,7 +205,7 @@ class Remote:
     """
 
     def buildPaymentTx(self, options):
-        tx = Transaction(self)
+        tx = Transaction(self, None)
         if not options:  # typeof options没有转换
             tx.tx_json.obj = Exception('invalid options type')
             return tx

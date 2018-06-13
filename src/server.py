@@ -5,12 +5,14 @@
  * Time: 13:11
  * Description: 
 """
+import json
+
+import schedule
+from eventemitter import EventEmitter
 from websocket import create_connection
+
 from src.config import Config
 from src.logger import logger
-from eventemitter import EventEmitter
-import schedule
-import json
 
 test_evn = False
 TEST_MODE = "test"
@@ -112,19 +114,19 @@ class WebSocketServer(Server):
         if not self.connected:
             self.opened = False
 
-    def send_message(self, command, data):
+    def send_message(self, command, data, callback):
         """
         refuse to send msg if connection blows out
         :param command:
         :param data:
-        :return:
+        :return:    backen 返回结果
         """
         if not self.opened:
             return
         req_id = (self.id + 1)
         msg = dict({'id': req_id, 'command': command}, **data)
         self.ws.send(json.dumps(msg))
-
+        callback = self.ws.recv()
         return req_id
 
     def send(self, data):

@@ -21,7 +21,8 @@ class Request:
     def submit(self, callback):
         for key in self.message:
             if isinstance(self.message[key], Exception):
-                return callback(self.message[key].message)
+                callback = self.message[key]
+                return callback
 
         self.remote.submit(self.command, self.message, self.filter, callback)
 

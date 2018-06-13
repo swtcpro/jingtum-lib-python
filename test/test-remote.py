@@ -22,7 +22,7 @@ def CheckErr(err, result):
 remote = Remote()
 
 
-def test(err, result='123'):
+def test(err, callback):
     if err:
         return print('err:', err)
     tx = remote.buildPaymentTx({
@@ -37,7 +37,8 @@ def test(err, result='123'):
     tx.setSecret('sn37nYrQ6KPJvTFmaBYokS3FjXUWd')
     tx.addMemo('给jDUjqoDZLhzx4DCf6pvSivjkjgtRESY62c支付0.5swt.')  # 可选
     tx.submit(CheckErr)
-    logger.info(result)
+    logger.info(callback)
 
 
-remote.connect(test)
+remote.connect(None)
+test(None, None)
