@@ -15,7 +15,7 @@ from numbers import Number
 from eventemitter import EventEmitter
 
 # rename jingtum-python-baselib to jingtum_python_baselib as python seem can't recognize -
-from jingtum_python_baselib.src.utils import utils as baselib
+from jingtum_python_baselib.src.wallet import Wallet as baselib
 from src.config import Config
 from src.request import Request
 from src.server import Server, WebSocketServer
@@ -209,15 +209,26 @@ class Remote:
         if not options:  # typeof options没有转换
             tx.tx_json.obj = Exception('invalid options type')
             return tx
-        src = options.source or options.fromnow or options.account
-        dst = options.destination or options.to
-        amount = options.amount
+        if options.__contains__('source'):
+            src = options['source']
+        elif options.__contains__('from'):
+            src = options['from']
+        elif options.__contains__('account'):
+            src = options['account']
+
+        if options.__contains__('destination'):
+            dst = options['destination']
+        elif options.__contains__('to'):
+            dst = options['to']
+        amount = options['amount']
+        """
         if not baselib.isValidAddress(src):
             tx.tx_json.src = Exception('invalid source address')
             return tx
         if not baselib.isValidAddress(dst):
             tx.tx_json.dst = Exception('invalid destination address')
             return tx
+        """
         if not utils.isValidAmount(amount):
             tx.tx_json.amount = Exception('invalid amount')
             return tx
@@ -229,9 +240,15 @@ class Remote:
         return tx
 
     def __buildRelationSet(options, tx):
-        src = options.source or options.fromnow or options.account
-        des = options.target
-        limit = options.limit
+        if options.__contains__('source'):
+            src = options['source']
+        elif options.__contains__('from'):
+            src = options['from']
+        elif options.__contains__('account'):
+            src = options['account']
+
+        des = options['target']
+        limit = options['limit']
 
         if not baselib.isValidAddress(src):
             tx.tx_json.src = Exception('invalid source address')
@@ -243,13 +260,13 @@ class Remote:
             tx.tx_json.limit = Exception('invalid amount')
             return tx
 
-        if options.type == 'unfreeze':
+        if options['type'] == 'unfreeze':
             tx.tx_json.TransactionType = 'RelationDel'
         else:
             tx.tx_json.TransactionType = 'RelationSet'
         tx.tx_json.Account = src
         tx.tx_json.Target = des
-        if options.type == 'authorize':
+        if options['type'] == 'authorize':
             tx.tx_json.RelationType = '1'
         else:
             tx.tx_json.RelationType = '3'
@@ -258,10 +275,15 @@ class Remote:
         return tx
 
     def __buildTrustSet(options, tx):
-        src = options.source or options.fromnow or options.account
-        limit = options.limit
-        quality_out = options.quality_out
-        quality_in = options.quality_in
+        if options.__contains__('source'):
+            src = options['source']
+        elif options.__contains__('from'):
+            src = options['from']
+        elif options.__contains__('account'):
+            src = options['account']
+        limit = options['limit']
+        quality_out = options['quality_out']
+        quality_in = options['quality_in']
 
         if not baselib.isValidAddress(src):
             tx.tx_json.src = Exception('invalid source address')
