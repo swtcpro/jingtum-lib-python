@@ -8,14 +8,15 @@
 #from brorand import brorand 
 import hashlib
 #from secp256k1 import secp256k1 
-from utils import hexToBytes, bytesToHex
+from utils import utils
 from elliptic import ec
+from base58 import base58
 ec=EC('secp256k1')
 
 SEED_PREFIX = 33
 ACCOUNT_PREFIX = 0
 alphabet = 'jpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65rkm8oFqi1tuvAxyz'
-base58 = require('base-x')(alphabet)
+#base58 = require('base-x')(alphabet)
 
 def sha256(bytes):
 	return hashlib.sha256().update(bytes).digest()
@@ -53,10 +54,10 @@ class keypairs:
 	 * @returns {string}
 	 * @private
 	"""
-	def __encode(version, bytes):
-		buffer = bufCat0(version, bytes)
+	def __encode(self, version, bytes):
+		buffer = self.bufCat0(version, bytes)
 		checksum = Buffer(sha256(sha256(buffer)).slice(0, 4))
-		ret = bufCat1(buffer, checksum)
+		ret = self.bufCat1(buffer, checksum)
 		return base58.encode(ret)
 
 	"""
@@ -69,14 +70,14 @@ class keypairs:
 	"""
 	def __decode(version, input):
 		bytes = base58.decode(input)
-		if (not bytes or bytes[0] != version or bytes.length < 5):
-			Error('invalid input size')
+		if (not bytes or bytes[0] != version or len(bytes) < 5):
+			raise Exception('invalid input size')
 		computed = sha256(sha256(bytes.slice(0, -4))).slice(0, 4)
 		checksum = bytes.slice(-4)
 		i = 0
 		while i != 4:
 			if (computed[i] != checksum[i]):
-				Error('invalid checksum')
+				raise Exception('invalid checksum')
 			i += 1
 		return bytes.slice(1, -4)
 
@@ -84,9 +85,9 @@ class keypairs:
 	 * generate random bytes and encode it to secret
 	 * @returns {string}
 	"""
-	def generateSeed():
+	def generateSeed(self):
 		#randBytes = brorand(16) 'Buffer'+16个字节的随机数
-		return __encode(SEED_PREFIX, randBytes)
+		return self.__encode(SEED_PREFIX, randBytes)
 
 	"""
 	 * generate privatekey from input seed
@@ -106,12 +107,12 @@ class keypairs:
 	 * @param {string} secret
 	 * @returns {{privateKey: string, publicKey: *}}
 	"""
-	def deriveKeyPair(secret):
+	def deriveKeyPair(self, secret):
 		prefix = '00'
-		entropy = __decode(SEED_PREFIX, secret)
+		entropy = self.__decode(SEED_PREFIX, secret)
 		entropy = base58.decode(secret).slice(1, -4)
-		privateKey = prefix + derivePrivateKey(entropy).toString(16, 64).toUpperCase()
-		publicKey = bytesToHex(ec.keyFromPrivate(privateKey.slice(2)).getPublic().encodeCompressed())
+		privateKey = prefix + self.derivePrivateKey(entropy).toString(16, 64).toUpperCase()
+		publicKey = utils.bytesToHex(ec.keyFromPrivate(privateKey.slice(2)).getPublic().encodeCompressed())
 		return { privateKey: privateKey, publicKey: publicKey }
 
 	"""
@@ -119,7 +120,7 @@ class keypairs:
 	"""
 	def deriveKeyPairWithKey(key):
 		privateKey = key
-		publicKey = bytesToHex(ec.keyFromPrivate(key).getPublic().encodeCompressed())
+		publicKey = utils.bytesToHex(ec.keyFromPrivate(key).getPublic().encodeCompressed())
 		return { privateKey: privateKey, publicKey: publicKey }
 
 	"""
@@ -127,20 +128,20 @@ class keypairs:
 	 * @param {string} publicKey
 	 * @returns {string}
 	"""
-	def deriveAddress(publicKey):
-		bytes = hexToBytes(publicKey)
+	def deriveAddress(self, publicKey):
+		bytes = utils.hexToBytes(publicKey)
 		hash256 = hashlib.sha256().update(bytes).digest()
 		input = Buffer(hashlib.ripemd160().update(hash256).digest())
-		return __encode(ACCOUNT_PREFIX, input)
+		return self.__encode(ACCOUNT_PREFIX, input)
 
 	"""
 	 * check is address is valid
 	 * @param address
 	 * @returns {boolean}
 	"""
-	def checkAddress(address):
+	def checkAddress(self, address):
 		try:
-			__decode(ACCOUNT_PREFIX, address)
-			return true
+			self.__decode(ACCOUNT_PREFIX, address)
+			return True
 		except Exception:
-			return false
+			return False

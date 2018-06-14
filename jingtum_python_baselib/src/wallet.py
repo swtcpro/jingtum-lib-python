@@ -7,13 +7,14 @@
 """
 from keypairs import keypairs
 from elliptic import elliptic
-from utils import hexToBytes, bytesToHex
+from utils import utils
+import hashlib
 #var hashjs = require('hash.js');
 #from hash import hashpy
 ec = elliptic.ec
 
 def hash(message):
-  return hashjs.sha512().update(message).digest().slice(0, 32)
+	return hashlib.sha512().update(message).digest().slice(0, 32)
 
 class Wallet:
 	def __init__(self, secret):
@@ -21,8 +22,8 @@ class Wallet:
 			self._keypairs = keypairs.deriveKeyPair(secret)
 			self._secret = secret
 		except Exception:
-			self._keypairs = null
-			self._secret = null
+			self._keypairs = None
+			self._secret = None
 
 	"""
 	 * static funcion
@@ -45,9 +46,9 @@ class Wallet:
 		try:
 			keypair = keypairs.deriveKeyPair(secret)
 			address = keypairs.deriveAddress(keypair.publicKey)
-			return {secret: secret, address: address}
+			return {'secret': secret, 'address': address}
 		except Exception:
-			return null
+			return None
 			
 	"""
 	 * static function
@@ -67,9 +68,9 @@ class Wallet:
 	def isValidSecret(secret):
 		try:
 			keypairs.deriveKeyPair(secret)
-			return true
+			return True
 		except Exception:
-			return false
+			return False
 
 	"""
 	 * sign message with wallet privatekey
@@ -77,12 +78,12 @@ class Wallet:
 	 * @returns {*}
 	"""
 	def sign(self, message):
-		if (not message or message.length == 0): 
-			return null
+		if (not message or len(message) == 0):
+			return None
 		if (not self._keypairs): 
-			return null
+			return None
 		privateKey = self._keypairs.privateKey;
-		return bytesToHex(ec.sign(hash(message), hexToBytes(privateKey), { canonical: true }).toDER());
+		return utils.bytesToHex(ec.sign(hash(message), utils.hexToBytes(privateKey), { 'canonical': True }).toDER());
 
 	"""
 	 * verify signature with wallet publickey
@@ -92,9 +93,9 @@ class Wallet:
 	"""
 	def verify(self, message, signature):
 		if not self._keypairs:
-			return null
+			return None
 		publicKey = self._keypairs.publicKey
-		return ec.verify(hash(message), signature, hexToBytes(publicKey))
+		return ec.verify(hash(message), signature, utils.hexToBytes(publicKey))
 
 	"""
 	 * get wallet address
@@ -102,7 +103,7 @@ class Wallet:
 	"""
 	def address(self):
 		if not self._keypairs:
-			return null
+			return None
 		address = keypairs.deriveAddress(self._keypairs.publicKey)
 		return address
 
@@ -112,13 +113,13 @@ class Wallet:
 	"""
 	def secret(self):
 		if not self._keypairs: 
-			return null
+			return None
 		return self._secret
 
 	def toJson(self):
 		if not self._keypairs:
-			return null
+			return None
 		return {
-			secret: secret(),
-			address: address()
+			'secret': self.secret(),
+			'address': self.address()
 		}
