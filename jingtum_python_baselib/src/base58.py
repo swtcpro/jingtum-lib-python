@@ -94,8 +94,8 @@ class base58():
 
 		return bytes.reverse()
 
-	def decode(string):
-		array = basex.decodeUnsafe(string)
+	def decode(self, string):
+		array = self.decodeUnsafe(string)
 		if (array): 
 			return array
 
