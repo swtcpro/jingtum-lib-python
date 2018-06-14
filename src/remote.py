@@ -15,7 +15,7 @@ from numbers import Number
 from eventemitter import EventEmitter
 
 # rename jingtum-python-baselib to jingtum_python_baselib as python seem can't recognize -
-from jingtum_python_baselib.src.wallet import Wallet as baselib
+#from jingtum_python_baselib.src.wallet import Wallet as baselib
 from src.config import Config
 from src.request import Request
 from src.server import Server, WebSocketServer
