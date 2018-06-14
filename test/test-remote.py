@@ -11,16 +11,11 @@ from src.logger import logger
 sys.path.append("..\src")
 from src.remote import Remote
 
-
 def CheckErr(err, result):
     if (err):
         print('err:', err)
     elif result:
         print('res:', result)
-
-
-remote = Remote()
-
 
 def test(err, callback):
     if err:
@@ -39,6 +34,6 @@ def test(err, callback):
     tx.submit(CheckErr)
     logger.info(callback)
 
-
+remote = Remote()
 remote.connect(None)
 test(None, None)

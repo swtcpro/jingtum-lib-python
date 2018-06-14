@@ -207,7 +207,7 @@ class Remote:
     def buildPaymentTx(self, options):
         tx = Transaction(self, None)
         if not options:  # typeof options没有转换
-            tx.tx_json.obj = Exception('invalid options type')
+            tx.tx_json['obj'] = Exception('invalid options type')
             return tx
         if options.__contains__('source'):
             src = options['source']
@@ -221,22 +221,22 @@ class Remote:
         elif options.__contains__('to'):
             dst = options['to']
         amount = options['amount']
-        """
+
         if not baselib.isValidAddress(src):
-            tx.tx_json.src = Exception('invalid source address')
+            tx.tx_json['src'] = Exception('invalid source address')
             return tx
         if not baselib.isValidAddress(dst):
-            tx.tx_json.dst = Exception('invalid destination address')
-            return tx
-        """
-        if not utils.isValidAmount(amount):
-            tx.tx_json.amount = Exception('invalid amount')
+            tx.tx_json['dst'] = Exception('invalid destination address')
             return tx
 
-        tx.tx_json.TransactionType = 'Payment'
-        tx.tx_json.Account = src
-        tx.tx_json.Amount = ToAmount(amount)
-        tx.tx_json.Destination = dst
+        if not utils.isValidAmount(amount):
+            tx.tx_json['amount'] = Exception('invalid amount')
+            return tx
+
+        tx.tx_json['TransactionType'] = 'Payment'
+        tx.tx_json['Account'] = src
+        tx.tx_json['Amount'] = ToAmount(amount)
+        tx.tx_json['Destination'] = dst
         return tx
 
     def __buildRelationSet(options, tx):
@@ -251,27 +251,27 @@ class Remote:
         limit = options['limit']
 
         if not baselib.isValidAddress(src):
-            tx.tx_json.src = Exception('invalid source address')
+            tx.tx_json['src'] = Exception('invalid source address')
             return tx
         if not baselib.isValidAddress(des):
-            tx.tx_json.des = Exception('invalid target address')
+            tx.tx_json['des'] = Exception('invalid target address')
             return tx
         if not utils.isValidAmount(limit):
-            tx.tx_json.limit = Exception('invalid amount')
+            tx.tx_json['limit'] = Exception('invalid amount')
             return tx
 
         if options['type'] == 'unfreeze':
-            tx.tx_json.TransactionType = 'RelationDel'
+            tx.tx_json['TransactionType'] = 'RelationDel'
         else:
-            tx.tx_json.TransactionType = 'RelationSet'
-        tx.tx_json.Account = src
-        tx.tx_json.Target = des
+            tx.tx_json['TransactionType'] = 'RelationSet'
+        tx.tx_json['Account'] = src
+        tx.tx_json['Target'] = des
         if options['type'] == 'authorize':
-            tx.tx_json.RelationType = '1'
+            tx.tx_json['RelationType'] = '1'
         else:
-            tx.tx_json.RelationType = '3'
+            tx.tx_json['RelationType'] = '3'
         if limit:
-            tx.tx_json.LimitAmount = limit
+            tx.tx_json['LimitAmount'] = limit
         return tx
 
     def __buildTrustSet(options, tx):
@@ -286,20 +286,20 @@ class Remote:
         quality_in = options['quality_in']
 
         if not baselib.isValidAddress(src):
-            tx.tx_json.src = Exception('invalid source address')
+            tx.tx_json['src'] = Exception('invalid source address')
             return tx
         if not utils.isValidAmount(limit):
-            tx.tx_json.limit = Exception('invalid amount')
+            tx.tx_json['limit'] = Exception('invalid amount')
             return tx
 
-        tx.tx_json.TransactionType = 'TrustSet'
-        tx.tx_json.Account = src
+        tx.tx_json['TransactionType'] = 'TrustSet'
+        tx.tx_json['Account'] = src
         if limit:
-            tx.tx_json.LimitAmount = limit
+            tx.tx_json['LimitAmount'] = limit
         if quality_in:
-            tx.tx_json.QualityIn = quality_in
+            tx.tx_json['QualityIn'] = quality_in
         if quality_out:
-            tx.tx_json.QualityOut = quality_out
+            tx.tx_json['QualityOut'] = quality_out
         return tx
 
     """
@@ -313,19 +313,18 @@ class Remote:
      * @returns {Transaction}
      * 创建关系对象
     """
-
     def buildRelationTx(self, options):
         tx = Transaction(self)
         if not options:
-            tx.tx_json.obj = Exception('invalid options type')
+            tx.tx_json['obj'] = Exception('invalid options type')
             return tx
         if not ~Transaction.RelationTypes.index(options.type):
-            tx.tx_json.type = Exception('invalid relation type')
+            tx.tx_json['type'] = Exception('invalid relation type')
             return tx
-        if options.type == 'trust':
+        if options['type'] == 'trust':
             return self.__buildTrustSet(options, tx)
-        elif options.type == 'authorize' or \
-                options.type == 'freeze' or options.type == 'unfreeze':
+        elif options['type'] == 'authorize' or \
+                options['type'] == 'freeze' or options['type'] == 'unfreeze':
             return self.__buildRelationSet(options, tx)
-        tx.tx_json.msg = Exception('build relation set should not go here')
+        tx.tx_json['msg'] = Exception('build relation set should not go here')
         return tx
