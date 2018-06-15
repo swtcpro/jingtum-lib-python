@@ -328,3 +328,165 @@ class Remote:
             return self.__buildRelationSet(options, tx)
         tx.tx_json['msg'] = Exception('build relation set should not go here')
         return tx
+
+    ##设置账号属性
+    def buildAccountSetTx(self, options):
+        tx = Transaction(self)
+        if not options:
+            tx.tx_json.obj = ValueError('invalid options type')
+            return tx
+        if not ~Transaction.AccountSetTypes.index(options.type):
+            tx.tx_json.type = ValueError('invalid account set type')
+            return tx
+        if options.type == 'property':
+            return self.__buildAccountSet(options, tx)
+        elif options.type == 'delegate':
+            return self.__buildDelegateKeySet(options, tx)
+        elif options.type == 'signer':
+            return self.__buildSignerSet(options.tx)
+        tx.tx_json.msg = Warning('build account set should not go here')
+        return tx
+
+    def __buildAccountSet(self, options, tx):
+        if options.__contains__('source'):
+            src = options['source']
+        elif options.__contains__('from'):
+            src = options['from']
+        elif options.__contains__('account'):
+            src = options['account']
+
+        if options.__contains__('set_flag'):
+            set_flag = options['set_flag']
+        elif options.__contains__('set'):
+            set_flag = options['set']
+
+        if options.__contains__('clear_flag'):
+            clear_flag = options['clear_flag']
+        elif options.__contains__('clear'):
+            clear_flag = options['clear']
+
+        if not utils.isValidAmount():
+            pass
+        tx.tx_json.TransactionType = 'AccountSet'
+        tx.tx_json.Account = src
+        SetClearFlags = Transaction.set_clear_flags.AccountSet
+        set_flag = self.__prepareFlag(set_flag, SetClearFlags)
+        if set_flag:
+            tx.tx_json.SetFlag = set_flag
+        clear_flag = self.__prepareFlag(clear_flag, SetClearFlags)
+        if clear_flag:
+            tx.tx_json.ClearFlag = clear_flag
+        return tx
+
+    def __prepareFlag(self, flag, SetClearFlags):
+        if isinstance(flag, int):
+            flag = SetClearFlags[flag]
+        else:
+            flag = SetClearFlags['asf' + flag]
+        return flag
+
+    def __buildDelegateKeySet(self, options, tx):
+        if options.__contains__('source'):
+            src = options['source']
+        elif options.__contains__('account'):
+            src = options['account']
+        elif options.__contains__('from'):
+            src = options['from']
+        delegate_key = options.delegate_key
+        if not utils.isValidAddress(src):
+            tx.tx_json.delegate_key = Exception('invalid source address')
+            return tx
+        if not utils.isValidAddress(delegate_key):
+            tx.tx_json.delegate_key = Exception('invalid regular key address')
+            return tx
+        tx.tx_json.TransactionType = 'SetRegularKey'
+        tx.tx_json.Account = src
+        tx.tx_json.RegularKey = delegate_key
+        return tx
+
+    def __buildSignerSet(self):
+        return None
+
+    # 挂单
+    def buildOfferCreateTx(self, options):
+        tx = Transaction(self)
+        if not options:
+            tx.tx_json.obj = TypeError('invalid options type')
+            return tx
+        offer_type = options.type
+        if options.__contains__('source'):
+            src = options['source']
+        elif options.__contains__('from'):
+            src = options['from']
+        elif options.__contains__('account'):
+            src = options['account']
+
+        if options.__contains__('taker_gets'):
+            taker_gets = options['taker_gets']
+        elif options.__contains__('pays'):
+            taker_gets = options['pays']
+        # taker_gets = options.taker_gets or options.pays
+        if options.__contains__('taker_pays'):
+            taker_pays = options['taker_pays']
+        elif options.__contains__('gets'):
+            taker_pays = options['gets']
+        # taker_pays = options.taker_pays or options.gets
+        if not utils.isValidAddress(src):
+            tx.tx_json.src = Exception('invalid source address')
+            return tx
+        if not isinstance(offer_type, str) or not ~Transaction.OfferTypes.indexOf(offer_type):
+            tx.tx_json.offer_type = TypeError('invalid offer type')
+            return tx
+        taker_gets2, taker_pays2 = any
+        if isinstance(taker_gets, str) and not int(taker_gets) and not float(taker_gets):
+            tx.tx_json.taker_gets2 = Exception('invalid to pays amount')
+            return tx
+        if not taker_gets and not utils.isValidAmount(taker_gets):
+            tx.tx_json.taker_gets2 = Exception('invalid to pays amount object')
+            return tx
+        if isinstance(taker_pays, str) and not int(taker_pays) and not not float(taker_pays):
+            tx.tx_json.taker_pays2 = Exception('invalid to gets amount')
+            return tx
+        if not taker_pays and not utils.isValidAmount(taker_pays):
+            tx.tx_json.taker_pays2 = Exception('invalid to gets amount object')
+            return tx
+        tx.tx_json.TransactionType = 'OfferCreate'
+        if offer_type is 'Sell':
+            tx.setFlags(offer_type)
+        tx.tx_json.Account = src
+        tx.tx_json.TakerPays = taker_pays2 if taker_pays2 else self.ToAmount(taker_pays)
+        tx.tx_json.TakerGets = taker_gets2 if taker_gets2 else self.ToAmount(taker_gets)
+        return tx
+
+    def ToAmount(self, amount):
+        if (amount.value and int(amount.value) > 100000000000):
+            return Exception('invalid amount: amount\'s maximum value is 100000000000')
+        if amount.currency is Config.currency:
+            # 这段需要修改
+            return str(int(amount.value).mul(1000000.00))
+        return amount
+
+    # 取消挂单
+    def buildOfferCancelTx(self, options):
+        tx = Transaction(self)
+        if not options:
+            tx.tx_json.obj = Exception('invalid options type')
+            return tx
+        # src = options.source or options.fromnow or options.account
+        sequence = options.sequence
+        if options.__contains__('source'):
+            src = options['source']
+        elif options.__contains__('from'):
+            src = options['from']
+        elif options.__contains__('account'):
+            src = options['account']
+        if not utils.isValidAddress(src):
+            tx.tx_json.src = Exception('invalid source address')
+            return tx
+        if not int(sequence) and not float(sequence):
+            tx.tx_json.sequence = Exception('invalid sequence param')
+            return tx
+        tx.tx_json.TransactionType = 'OfferCancel'
+        tx.tx_json.Account = src
+        tx.tx_json.OfferSequence = int(sequence)
+        return tx
