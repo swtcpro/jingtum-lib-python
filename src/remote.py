@@ -15,7 +15,7 @@ from numbers import Number
 from eventemitter import EventEmitter
 
 # rename jingtum-python-baselib to jingtum_python_baselib as python seem can't recognize -
-#from jingtum_python_baselib.src.wallet import Wallet as baselib
+# from jingtum_python_baselib.src.wallet import Wallet as baselib
 from src.config import Config
 from src.request import Request
 from src.server import Server, WebSocketServer
@@ -169,22 +169,22 @@ class Remote:
         """
         self.emitter.emit('path_find', data)
 
-    def submit(self, command, data, filter, callback):
+    def submit(self, command, data):
         """
         request to server and backend
         :param command:
         :param data:
         :param filter:
-        :param callback:
-        :return:
+        :return: {'req_id': req_id, 'callback': callback}
         """
-        req_id = self.server.send_message(command, data, callback)
-        self.requests[req_id] = {
+        result = self.server.send_message(command, data)
+        self.requests[result['req_id']] = {
             'command': command,
             'data': data,
-            'filter': filter,
-            'callback': callback
+            # 'filter': filter,
+            'callback': result['callback']
         }
+        return result['callback']
         # callback()
 
     def subscribe(self, streams):
@@ -192,6 +192,28 @@ class Remote:
         if streams:
             request.message['streams'] = streams if isinstance(streams, list) else [streams]
         return request
+
+    # ---------------------- info request - -------------------
+    # ---------------------- info request - -------------------
+    # ---------------------- info request - -------------------
+
+    def request_server_info(self):
+        # server_info = {
+        #     'version': data.info.build_version,
+        #     'ledgers': data.info.complete_ledgers,
+        #     'node': data.info.pubkey_node,
+        #     'state': data.info.server_state
+        # }
+        return Request(self, 'server_info')
+
+    def parse_server_info(self, data):
+        data = json.loads(data)
+        return {
+            'version': data['result']['info']['build_version'],
+            'ledgers': data['result']['info']['complete_ledgers'],
+            'node': data['result']['info']['pubkey_node'],
+            'state': data['result']['info']['server_state']
+        }
 
     """
      * payment
@@ -313,6 +335,7 @@ class Remote:
      * @returns {Transaction}
      * 创建关系对象
     """
+
     def buildRelationTx(self, options):
         tx = Transaction(self)
         if not options:
