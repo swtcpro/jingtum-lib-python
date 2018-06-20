@@ -12,10 +12,10 @@ from src.utils.utils import *
 
 
 class Request:
-    def __init__(self, remote, command):
+    def __init__(self, remote, command, filter):
         self.remote = remote
         self.command = command
-        # self.filter = filter
+        self.filter = filter
 
         self.message = {}
         self.emitter = EventEmitter()
