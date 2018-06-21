@@ -34,7 +34,7 @@ class Request:
         :param ledger:  账本的Index或者hash
         :return: Request对象
         """
-        if isinstance(ledger, str) and ~LEDGER_STATES.index(ledger):
+        if isinstance(ledger, str) and LEDGER_STATES.index(ledger):
             self.message['ledger_index'] = ledger
         elif isinstance(ledger, str) and is_number(ledger):
             self.message['ledger_index'] = ledger

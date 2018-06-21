@@ -6,6 +6,7 @@
  * Description: 
 """
 import unittest
+
 from src.logger import logger
 from src.remote import Remote
 
@@ -38,6 +39,13 @@ class RemoteTest(unittest.TestCase):
         if not isinstance(remote.connect(None), Exception):
             req = remote.request_tx({'hash': '82C2C652431B63179E7CC775C3C1DBEC7AF1A6E91CC5A2671B195C19C76D701C'})
             result = remote.parse_transaction(req.submit())
+            logger.info(result)
+
+    def test_request_account_info(self):
+        remote = Remote()
+        if not isinstance(remote.connect(None), Exception):
+            req = remote.request_account_info({'account': 'jsMwaJ7EA4y7QgdvQzaD2CqzQQN4v7vLFK'})
+            result = req.submit()
             logger.info(result)
 
 

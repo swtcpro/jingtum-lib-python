@@ -9,7 +9,7 @@
 from numbers import Number
 import re
 
-# from jingtum_python_baselib.src.wallet import Wallet
+from jingtum_python_baselib.src.wallet import Wallet
 
 # Flags for ledger entries
 LEDGER_FLAGS = {

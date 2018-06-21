@@ -14,6 +14,7 @@ from numbers import Number
 
 from eventemitter import EventEmitter
 
+from src import util
 # rename jingtum-python-baselib to jingtum_python_baselib as python seem can't recognize -
 # from jingtum_python_baselib.src.wallet import Wallet as baselib
 from src.config import Config
@@ -22,7 +23,6 @@ from src.server import Server, WebSocketServer
 from src.transaction import Transaction
 from src.utils.cache import LRUCache
 from src.utils.utils import utils
-from src import util
 
 LEDGER_OPTIONS = ['closed', 'header', 'current']
 
@@ -262,27 +262,52 @@ class Remote:
         req.message['transaction'] = options['hash']
         return req
 
+    def get_relation_type(self, type):
+        if type == 'trustline':
+            return 0
+        elif type == 'authorize':
+            return 1
+        elif type == 'freeze':
+            return 2
+
     def request_account(self, type, options, req):
         """
-        正在撰写当中，未完成
-
-
-
-
-        此处开始
         :param type:
         :param options:
         :param req:
         :return:
         """
         req.command = type
+        ledger = None
+        peer = None
+        limit = None
+        marker = None
         account = options['account']
-        ledger = options['ledger']
-        peer = options['peer']
-        limit = options['limit']
-        marker = options['marker']
-        # req.message['relation_type'] =
-
+        if 'ledger' in options:
+            ledger = options['ledger']
+        if 'peer' in options:
+            peer = options['peer']
+        if 'limit' in options:
+            limit = options['limit']
+        if 'marker' in options:
+            marker = options['marker']
+        if 'type' in options:
+            req.message['relation_type'] = self.get_relation_type(options['type'])
+        if account:
+            req.message['account'] = account
+        if ledger:
+            req.select_ledger(ledger)
+        if util.is_valid_address(peer):
+            req.message['peer'] = peer
+        if limit:
+            limit = int(limit)
+            if limit < 0:
+                limit = 0
+            if limit > 1e9:
+                limit = 1e9
+            req.message['limit'] = limit
+        if marker:
+            req.message['marker'] = marker
         return
 
     def request_account_info(self, options):
