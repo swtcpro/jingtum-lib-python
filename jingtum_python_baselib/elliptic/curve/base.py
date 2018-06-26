@@ -4,7 +4,10 @@
 # getNAF = utils.getNAF
 # getJSF = utils.getJSF
 # assert = utils.assert
+import sys
+sys.path.append("..\src")
 import math
+import utils
 
 class BaseCurve:
     def __init__(self, type, conf):

@@ -3,11 +3,16 @@
 # BN = require('bn.js')
 # inherits = require('inherits')
 # Base = curve.base
+import sys
+sys.path.append("..")
 import math
+from curve.base import *
+import bn.bn
+#import base
 
-class ShortCurve:
+class ShortCurve(BaseCurve):
     def __init__(self, conf):
-        Base.call(self, 'short', conf)
+        super().__init__('short', conf)
 
         self.a = BN(conf.a, 16).toRed(self.red)
         self.b = BN(conf.b, 16).toRed(self.red)
@@ -21,14 +26,20 @@ class ShortCurve:
         self._endoWnafT1 = [None,None,None,None]
         self._endoWnafT2 = [None,None,None,None]
 
+    def vec():
+        return {
+            a: BN(a, 16),
+            b: BN(b, 16)
+        }
+
     def _getEndomorphism(self, conf):
         # No efficient endomorphism
         if (not self.zeroA or not self.g or not self.n or self.p.modn(3) != 1):
             return
-
+        """
         # Compute beta and lambda, that lambda * P = (beta * Px Py)
         if (conf.beta):
-            beta =  BN(conf.beta, 16).toRed(self.red)
+            beta = BN(conf.beta, 16).toRed(self.red)
         else:
             betas = self._getEndoRoots(self.p)
             # Choose the smallest beta
@@ -38,8 +49,8 @@ class ShortCurve:
                 beta = betas[1]
             beta = beta.toRed(self.red)
 
-        if (conf['lambda']):
-            lambda = BN(conf['lambda'], 16)
+        if  hasattr(conf, 'lambda'):
+            lambda = BN(conf.lambda, 16)
         else:
             # Choose the lambda that is matching selected beta
             lambdas = self._getEndoRoots(self.n)
@@ -49,22 +60,19 @@ class ShortCurve:
                 lambda = lambdas[1]
                 assert self.g.mul( lambda ).x.cmp(self.g.x.redMul(beta)) == 0
 
+
         # Get basis vectors, used for balanced length-two representation
         if (conf.basis):
-            basis = conf.basis.map(
-            def(vec) {
-            return {
-                       a:  BN(vec.a, 16),
-                   b:
-            BN(vec.b, 16)
+            basis = map(vec, conf.basis)
         else:
             basis = self._getEndoBasis(lambda)
 
         return {
             'beta': beta,
-            'lambda': lambda ,
+            'lambda': lambda,
             'basis': basis
         }
+        """
 
     def _getEndoRoots(num):
         # Find roots of for x^2 + x + 1 in F
@@ -82,6 +90,7 @@ class ShortCurve:
         l2 = ntinv.redSub(s).fromRed()
         return [l1, l2]
 
+    """
     def _getEndoBasis(self, lambda):
         # aprxSqrt >= sqrt(self.n)
         aprxSqrt = self.n.ushrn(math.floor(self.n.bitLength() / 2))
@@ -95,8 +104,7 @@ class ShortCurve:
         x2 =  BN(0)
         y2 =  BN(1)
 
-        """
-        NOTE: all vectors are roots of: a + b * lambda = 0 (mod n)
+        #NOTE: all vectors are roots of: a + b * lambda = 0 (mod n)
         a0
         b0
         # First vector
@@ -105,7 +113,7 @@ class ShortCurve:
         # Second vector
         a2
         b2
-        """
+        
 
         i = 0
         while (u.cmpn(0) != 0):
@@ -154,6 +162,7 @@ class ShortCurve:
             {a: a1, b: b1},
             {a: a2, b: b2}
         ]
+    """
 
     def _endoSplit(self, k):
         basis = self.endo.basis
@@ -241,9 +250,9 @@ class ShortCurve:
     def pointFromJSON(obj, red):
         return Point.fromJSON(self, obj, red)
 
-class Point:
+class Point(BasePoint):
     def __init__(self, curve, x, y, isRed):
-        Base.BasePoint.call(self, curve, 'affine')
+        super().__init__(self, curve, 'affine')
         if (x == None and y == None):
             self.x = None
             self.y = None
@@ -261,6 +270,9 @@ class Point:
                 self.y = self.y.toRed(self.curve.red)
         self.inf = False
 
+    def endoMul(p):
+        return curve.point(p.x.redMul(curve.endo.beta), p.y)
+
     def _getBeta(self):
         if (not self.curve.endo):
             return
@@ -272,19 +284,18 @@ class Point:
         beta = self.curve.point(self.x.redMul(self.curve.endo.beta), self.y)
         if (pre):
             curve = self.curve
-            endoMul =  def(p)
-                return curve.point(p.x.redMul(curve.endo.beta), p.y)
             pre.beta = beta
             beta.precomputed = {
                     beta: None,
                     naf: pre.naf and {
                     wnd: pre.naf.wnd,
-                    points: pre.naf.points.map(endoMul)
+                    points: map(endoMul, pre.naf.points.map)
                 },
                 doubles: pre.doubles and {
                     step: pre.doubles.step,
-                    points: pre.doubles.points.map(endoMul)
+                    points: map(endoMul, pre.doubles.points)
                 }
+            }
         return beta
 
     def toJSON(self):
@@ -345,7 +356,7 @@ class Point:
             return self
         
         # P + P = 2P
-        if (self.eq(p))
+        if (self.eq(p)):
             return self.dbl()
         
         # P + (-P) = O
@@ -418,6 +429,9 @@ class Point:
         return self == p or self.inf == p.inf and \
             (self.inf or self.x.cmp(p.x) == 0 and self.y.cmp(p.y) == 0)
 
+    def negate(p):
+        return p.neg()
+
     def neg(self, _precompute):
         if (self.inf):
             return self
@@ -425,17 +439,16 @@ class Point:
         res = self.curve.point(self.x, self.y.redNeg())
         if (_precompute and self.precomputed):
             pre = self.precomputed
-            negate = def(p):
-                return p.neg()
 
             res.precomputed = {
                 naf: pre.naf and {
                     wnd: pre.naf.wnd,
-                    points: pre.naf.points.map(negate)
+                    points: map(negate, pre.naf.points)
                 },
             doubles: pre.doubles and {
                 step: pre.doubles.step,
-                points: pre.doubles.points.map(negate)
+                points: map(negate, pre.doubles.points)
+                }
             }
         return res
 
@@ -446,9 +459,9 @@ class Point:
         res = self.curve.jpoint(self.x, self.y, self.curve.one)
         return res
 
-class JPoint:
+class JPoint(BasePoint):
     def __init__(self, curve, x, y, z):
-        Base.BasePoint.call(self, curve, 'jacobian')
+        super().__init__(self, curve, 'jacobian')
         if (x == None and y == None and z == None):
             self.x = self.curve.one
             self.y = self.curve.one

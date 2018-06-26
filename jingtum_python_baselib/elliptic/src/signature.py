@@ -4,6 +4,8 @@
 
 #elliptic = require('../../elliptic')
 #utils = elliptic.utils
+import math
+import utils
 
 def Signature(self, options, enc):
     if isinstance(options, Signature):

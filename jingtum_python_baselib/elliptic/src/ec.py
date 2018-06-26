@@ -1,12 +1,13 @@
 # BN = ('bn.js')
 # HmacDRBG = ('hmac-drbg')
 # elliptic = ('../../elliptic')
-from . import utils
-
+#from . import utils
+import utils
 KeyPair = ('./key')
 Signature = ('./signature')
+import curves
 
-class EC:
+class EC(curve):
     def __init__(self, options):
         if not isinstance(self, EC):
             return EC(options)
