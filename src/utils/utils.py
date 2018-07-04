@@ -9,7 +9,7 @@
 import sys
 sys.path.append("..")
 
-from jingtum_python_baselib.src.utils import utils as baselib
+from jingtum_python_baselib.src import utils as baselib
 from src.config import Config
 
 import re
