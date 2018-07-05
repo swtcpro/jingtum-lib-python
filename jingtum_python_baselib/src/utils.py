@@ -5,6 +5,8 @@
  * Time: 11:25
  * Description: Ç®°üÒÀÀµµÄÄ£¿é
 """
+
+
 # import random
 def bytesToHex(srcinfo):
     # srcinfo is a array
@@ -21,3 +23,7 @@ def hexToBytes(srcinfo):
         dst.append(int(str(srcinfo[i: i + 2]), 16))
         i += 2
     return dst
+
+
+def str_to_hex(s):
+    return ' '.join([hex(ord(c)).replace('0x', '') for c in s])
