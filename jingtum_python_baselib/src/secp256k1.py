@@ -5,9 +5,9 @@
  * Time: 11:25
  * Description: Ç®°üÒÀÀµµÄÄ£¿é
 """
-from elliptic import ec
+# from elliptic import ec
 #import sha512
-ec=EC('secp256k1')
+# ec=EC('secp256k1')
 
 import hashlib
 

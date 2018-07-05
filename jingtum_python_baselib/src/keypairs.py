@@ -9,18 +9,19 @@
 # from secp256k1 import secp256k1
 # from brorand import brorand
 
-# from secp256k1 import secp256k1
 # from brorand import brorand
 # from secp256k1 import secp256k1
 # from brorand import brorand
 import hashlib
+import random
 import base58
 
+from jingtum_python_baselib.src import secp256k1
 # from elliptic import ec
 # from secp256k1 import secp256k1
 from jingtum_python_baselib.src import utils
 
-ec = EC('secp256k1')
+# ec = EC('secp256k1')
 
 SEED_PREFIX = 33
 ACCOUNT_PREFIX = 0
@@ -96,7 +97,7 @@ def __decode(version, input):
     checksum = bytes.slice(-4)
     i = 0
     while i != 4:
-        if (computed[i] != checksum[i]):
+        if computed[i] != checksum[i]:
             raise Exception('invalid checksum')
         i += 1
     return bytes.slice(1, -4)
@@ -108,9 +109,9 @@ def __decode(version, input):
 """
 
 
-def generateSeed(self):
-    # randBytes = brorand(16) 'Buffer'+16个字节的随机数
-    return self.__encode(SEED_PREFIX, randBytes)
+def generateSeed():
+    randBytes = ''.join(random.choice(alphabet) for _ in range(16))  # 'Buffer'+16个字节的随机数
+    return __encode(SEED_PREFIX, randBytes)
 
 
 """
