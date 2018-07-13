@@ -45,7 +45,7 @@ def decodeAddress(version, input):
     computed = sha256(sha256(bytearray(bytes[0:-4])))[0:4]
     checksum = bytes[-4:]
     i = 0
-    print('computed[0] is ', computed[0])
+    #print('computed[0] is ', computed[0])
     while i != 4:
         if (computed[i] != checksum[i]):
             raise Exception('invalid checksum')
@@ -119,9 +119,9 @@ def root_key_from_seed(seed):
     key = SigningKey.from_secret_exponent(secret, curves.SECP256k1)
     # Attach the generators as supplemental data
     key.private_gen = private_gen
-    print('private_gen is ', private_gen)
+    #print('private_gen is ', private_gen)
     key.public_gen = public_gen
-    print('public_gen is ', public_gen)
+    #print('public_gen is ', public_gen)
     return key
 
 def first_half_of_sha512(*bytes):
@@ -189,7 +189,6 @@ def get_jingtum_from_secret(seed):
     """Another helper. Returns the first jingtum address from the secret."""
     print('seed is ', seed)
     key = root_key_from_seed(parse_seed(seed))
-    print('got key is ', key)
     pubkey = ecc_point_to_bytes_compressed(key.privkey.public_key.point, pad=True)
     print('got pubkey is ', pubkey)
     return get_jingtum_from_pubkey(pubkey)
