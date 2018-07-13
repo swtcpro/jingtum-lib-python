@@ -11,6 +11,10 @@ from src.logger import logger
 from src.remote import Remote
 
 
+# import random
+# from jingtum_python_baselib.src import keypairs
+
+
 class RemoteTest(unittest.TestCase):
 
     def test_server_info(self):
@@ -47,6 +51,10 @@ class RemoteTest(unittest.TestCase):
             req = remote.request_account_info({'account': 'jsMwaJ7EA4y7QgdvQzaD2CqzQQN4v7vLFK'})
             result = req.submit()
             logger.info(result)
+
+    # def test_generateSeed(self):
+    #     randBytes = ''.join(random.choice(keypairs.alphabet) for _ in range(16))  # 'Buffer'+16个字节的随机数
+    #     return keypairs.__encode(33, randBytes)
 
 
 if __name__ == '__main__':
