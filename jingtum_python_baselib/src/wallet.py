@@ -6,24 +6,18 @@
  * Description: Ç®°üÄ£¿é
 """
 import hashlib
-
-# from utils import utils
-
-# from src.lib import keypair
-
-
-# var hashjs = require('hash.js');
-# from hash import hashpy
-# ec = elliptic.ec
+#import sys
+#sys.path.append("..")
+from jingtum_python_baselib.src.keypairs import *
+from jingtum_python_baselib.src.utils import *
 
 def hash(message):
-    return hashlib.sha512().update(message).digest().slice(0, 32)
-
+    return hashlib.sha512().update(message).digest()[0:32]
 
 class Wallet:
     def __init__(self, secret):
         try:
-            self._keypairs = keypair.deriveKeyPair(secret)
+            #self._keypairs = deriveKeyPair(secret)
             self._secret = secret
         except Exception:
             self._keypairs = None
@@ -34,13 +28,15 @@ class Wallet:
      * generate one wallet
      * @returns {{secret: string, address: string}}
     """
-
     @staticmethod
     def generate():
-        secret = keypair.generateSeed()
-        keypair = keypair.deriveKeyPair(secret)
-        address = keypair.deriveAddress(keypair.publicKey)
-        return {secret: secret, address: address}
+        #keypair = deriveKeyPair(secret)
+        #address = keypair.deriveAddress(keypair.publicKey)
+        secret = get_secret()
+        print('secret is '+ secret)
+        address = get_jingtum_from_secret(secret)
+        print("My Account: %s-%s" % (address, secret))
+        return {'secret': secret, 'address': address}
 
     """
      * static function
@@ -48,12 +44,10 @@ class Wallet:
      * @param secret
      * @returns {*}
     """
-
     @staticmethod
     def fromSecret(secret):
         try:
-            keypair = keypairs.deriveKeyPair(secret)
-            address = keypairs.deriveAddress(keypair.publicKey)
+            address = get_jingtum_from_secret(secret)
             return {'secret': secret, 'address': address}
         except Exception:
             return None
@@ -64,10 +58,13 @@ class Wallet:
      * @param address
      * @returns {boolean}
     """
-
     @staticmethod
     def isValidAddress(address):
-        return keypairs.checkAddress(address)
+        try:
+            decodeAddress(ACCOUNT_PREFIX, address)
+            return True
+        except Exception:
+            return False
 
     """
      * static function
@@ -75,11 +72,10 @@ class Wallet:
      * @param secret
      * @returns {boolean}
     """
-
     @staticmethod
     def isValidSecret(secret):
         try:
-            keypairs.deriveKeyPair(secret)
+            parse_seed(secret)
             return True
         except Exception:
             return False
@@ -89,7 +85,6 @@ class Wallet:
      * @param message
      * @returns {*}
     """
-
     def sign(self, message):
         if not message or len(message) == 0:
             return None
@@ -104,7 +99,6 @@ class Wallet:
      * @param signature
      * @returns {*}
     """
-
     def verify(self, message, signature):
         if not self._keypairs:
             return None
@@ -115,7 +109,6 @@ class Wallet:
      * get wallet address
      * @returns {*}
     """
-
     def address(self):
         if not self._keypairs:
             return None
@@ -126,7 +119,6 @@ class Wallet:
      * get wallet secret
      * @returns {*}
     """
-
     def secret(self):
         if not self._keypairs:
             return None
