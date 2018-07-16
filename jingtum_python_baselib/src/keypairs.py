@@ -10,6 +10,7 @@ from binascii import hexlify, unhexlify
 import os, time
 from random import randint
 from ecdsa import curves, SigningKey
+from ecdsa.util import sigencode_der
 from jingtum_python_baselib.src.utils import *
 from jingtum_python_baselib.src.base58 import base58
 
@@ -88,7 +89,6 @@ def get_secret(extra="FSQF5356dsdsqdfEFEQ3fq4q6dq4s5d"):
 
 def root_key_from_seed(seed):
     """This derives your master key the given seed.
-
     """
     seq = 0
     while True:
@@ -147,30 +147,6 @@ def ecc_point_to_bytes_compressed(point, pad=False):
         curves.SECP256k1.order.bit_length()//8 if pad else None)
     return b"".join([header, bytes])
 
-"""
- * derive keypair from secret
- * @param {string} secret
- * @returns {{privateKey: string, publicKey: *}}
-"""
-def deriveKeyPair(secret):
-    prefix = '00'
-    entropy = __decode(SEED_PREFIX, secret)
-    print('entropy is first', entropy)
-    entropy = base58x.decode(secret)[1:-4]
-    print('entropy is ', entropy)
-    privateKey = prefix + hex(derivePrivateKey(entropy)).replace('0x', '').upper()
-    publicKey = bytesToHex(ec.keyFromPrivate(privateKey[2]).getPublic().encodeCompressed())
-    return {privateKey: privateKey, publicKey: publicKey}
-
-
-"""
- * devive keypair from privatekey
-"""
-def deriveKeyPairWithKey(key):
-    privateKey = key
-    publicKey = bytesToHex(ec.keyFromPrivate(key).getPublic().encodeCompressed())
-    return {privateKey: privateKey, publicKey: publicKey}
-
 def parse_seed(secret):
     """Your Jingtum secret is a seed from which the true private key can
     be derived.
@@ -185,14 +161,42 @@ def get_jingtum_from_pubkey(pubkey):
     ripemd160.update(hashlib.sha256(pubkey).digest())
     return JingtumBaseDecoder.encode(ripemd160.digest())
 
+"""
 def get_jingtum_from_secret(seed):
-    """Another helper. Returns the first jingtum address from the secret."""
-    print('seed is ', seed)
+#Another helper. Returns the first jingtum address from the secret.
     key = root_key_from_seed(parse_seed(seed))
     pubkey = ecc_point_to_bytes_compressed(key.privkey.public_key.point, pad=True)
-    print('got pubkey is ', pubkey)
+    return get_jingtum_from_pubkey(pubkey)
+"""
+
+def get_jingtum_from_key(key):
+    """Another helper. Returns the first jingtum address from the key."""
+    pubkey = ecc_point_to_bytes_compressed(key.privkey.public_key.point, pad=True)
     return get_jingtum_from_pubkey(pubkey)
 
+def ecdsa_sign(key, signing_hash, **kw):
+    """Sign the given data. The key is the secret returned by
+    :func:`root_key_from_seed`.
 
+    The data will be a binary coded transaction.
+    """
+    r, s = key.sign_number(int(signing_hash, 16), **kw)
+    r, s = ecdsa_make_canonical(r, s)
+    # Encode signature in DER format, as in
+    # ``sjcl.ecc.ecdsa.secretKey.prototype.encodeDER``
+    der_coded = sigencode_der(r, s, None)
+    return der_coded
 
-#get_secret()
+def ecdsa_make_canonical(r, s):
+    """Make sure the ECDSA signature is the canonical one.
+
+    """
+    # For a canonical signature we want the lower of two possible values for s
+    # 0 < s <= n/2
+    N = curves.SECP256k1.order
+    if not N / 2 >= s:
+        s = N - s
+    return r, s
+
+def jingtum_sign(key, message):
+    return hexlify(ecdsa_sign(key, fmt_hex(sha256(message)), k=3))
