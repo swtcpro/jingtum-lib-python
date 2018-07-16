@@ -55,6 +55,18 @@ def to_bytes(number, length=None, endianess='big'):
     s = decode_hex(s)
     return s if endianess == 'big' else s[::-1]
 
+def fmt_hex(bytes):
+    """Format the bytes as a hex string, return upper-case version.
+    """
+    # This is a separate function so as to not make the mistake of
+    # using the '%X' format string with an ints, which will not
+    # guarantee an even-length string.
+    #
+    # binascii works on all versions of Python, the hex encoding does not.
+    hex = binascii.hexlify(bytes)
+    hex = hex.decode()  # Returns bytes, which makes no sense to me
+    return hex.upper()
+
 class JingtumBaseDecoder():
     def __init__(self):
         pass
