@@ -29,11 +29,12 @@ class Wallet:
      * @returns {{secret: string, address: string}}
     """
     @staticmethod
-    def generate(self):
+    def generate():
         secret = get_secret()
         print('secret is '+ secret)
-        self.key = root_key_from_seed(parse_seed(secret))
-        address = get_jingtum_from_key(self.key)
+        wallet = Wallet()
+        wallet.key = root_key_from_seed(parse_seed(secret))
+        address = get_jingtum_from_key(wallet.key)
         print("My Account: %s-%s" % (address, secret))
         return {'secret': secret, 'address': address}
 
@@ -44,10 +45,11 @@ class Wallet:
      * @returns {*}
     """
     @staticmethod
-    def fromSecret(self, secret):
+    def fromSecret(secret):
         try:
-            self.key = root_key_from_seed(parse_seed(secret))
-            address = get_jingtum_from_key(self.key)
+            wallet = Wallet()
+            wallet.key = root_key_from_seed(parse_seed(secret))
+            address = get_jingtum_from_key(wallet.key)
             print("My Account: %s-%s" % (address, secret))
             return {'secret': secret, 'address': address}
         except Exception:
