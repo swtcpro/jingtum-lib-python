@@ -1,23 +1,24 @@
 """
  * Created with PyCharm.
- * User: 彭诗杰
- * Date: 2018/7/5
+ * User: 蔡正龙
+ * Date: 2018/7/17
  * Time: 23:31
  * Description: 
 """
 import unittest
 
 from src.logger import logger
-from src.base import wallet
+from jingtum_python_baselib.wallet import Wallet
 
-
-class RemoteWallet(unittest.TestCase):
-
+class TestWallet(unittest.TestCase):
     def test_isValidAddress(self):
-        self.assertTrue(wallet.Wallet.isValidAddress('jfdLqEWhfYje92gEaWixVWsYKjK5C6bMoi'))
+        self.assertTrue(Wallet.isValidAddress('jfdLqEWhfYje92gEaWixVWsYKjK5C6bMoi'))
 
     def test_fromSecret(self):
-        print(wallet.Wallet.fromSecret('snDenehKWkWy4QNsYwhjV2xk31V6B'))
+        logger.info(Wallet.fromSecret('snDenehKWkWy4QNsYwhjV2xk31V6B'))
 
     def test_generate(self):
-        print(wallet.Wallet.generate())
+        logger.info(Wallet.generate())
+
+if __name__ == '__main__':
+    unittest.main()
