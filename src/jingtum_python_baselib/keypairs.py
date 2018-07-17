@@ -11,8 +11,8 @@ import os, time
 from random import randint
 from ecdsa import curves, SigningKey
 from ecdsa.util import sigencode_der
-from jingtum_python_baselib.utils import *
-from jingtum_python_baselib import base58
+from src.jingtum_python_baselib.utils import *
+from src.jingtum_python_baselib.base58 import base58
 
 SEED_PREFIX = 33
 ACCOUNT_PREFIX = 0
