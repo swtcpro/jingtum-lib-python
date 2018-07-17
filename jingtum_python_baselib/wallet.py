@@ -8,8 +8,6 @@
 import hashlib
 #import sys
 #sys.path.append("..")
-from jingtum_python_baselib.src.keypairs import *
-from jingtum_python_baselib.src.utils import *
 
 def hash(message):
     return hashlib.sha512().update(message).digest()[0:32]
@@ -31,11 +29,8 @@ class Wallet:
     @staticmethod
     def generate():
         secret = get_secret()
-        print('secret is '+ secret)
-        wallet = Wallet()
-        wallet.key = root_key_from_seed(parse_seed(secret))
-        address = get_jingtum_from_key(wallet.key)
-        print("My Account: %s-%s" % (address, secret))
+        key = root_key_from_seed(parse_seed(secret))
+        address = get_jingtum_from_key(key)
         return {'secret': secret, 'address': address}
 
     """
@@ -47,10 +42,8 @@ class Wallet:
     @staticmethod
     def fromSecret(secret):
         try:
-            wallet = Wallet()
-            wallet.key = root_key_from_seed(parse_seed(secret))
-            address = get_jingtum_from_key(wallet.key)
-            print("My Account: %s-%s" % (address, secret))
+            key = root_key_from_seed(parse_seed(secret))
+            address = get_jingtum_from_key(key)
             return {'secret': secret, 'address': address}
         except Exception:
             return None
