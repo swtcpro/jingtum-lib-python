@@ -11,12 +11,11 @@
 """
 import json
 from numbers import Number
-
 from eventemitter import EventEmitter
 
+from jingtum_python_baselib.wallet import Wallet
+
 from src import util
-# rename jingtum-python-baselib to jingtum_python_baselib as python seem can't recognize -
-# from jingtum_python_baselib.src.wallet import Wallet as baselib
 from src.config import Config
 from src.request import Request
 from src.server import Server, WebSocketServer
@@ -36,11 +35,11 @@ LEDGER_OPTIONS = ['closed', 'header', 'current']
 
 
 def ToAmount(amount):
-    if (amount.value and int(amount.value) > 100000000000):
+    if (amount.__contains__('value') and int(amount['value']) > 100000000000):
         return Exception('invalid amount: amount\'s maximum value is 100000000000')
-    if (amount.currency == Config.currency):
+    if (amount['currency']== Config.currency):
         # return new String(parseInt(Number(amount.value) * 1000000.00))
-        return str(int(amount.value * 1000000.00))
+        return str(int(amount['value'] * 1000000.00))
     return amount
 
 
@@ -143,7 +142,7 @@ class Remote:
             self.update_server_status(data.result)
 
         # return to callback
-        if data.status == 'suceess':
+        if data.status == 'success':
             result = request.filter(data.result)
             request.callback(None, result)
         elif data.status == 'error':
@@ -347,53 +346,49 @@ class Remote:
             'state': data['result']['info']['server_state']
         }
 
+    """
+     * payment
+     * @param options
+     *    source|from|account source account, required
+     *    destination|to destination account, required
+     *    amount payment amount, required
+     * @returns {transaction}
+     * 创建支付对象
+    """
+    def buildPaymentTx(self, options):
+        tx = Transaction(self, None)
+        if not options:  # typeof options没有转换
+            tx.tx_json['obj'] = Exception('invalid options type')
+            return tx
+        if options.__contains__('source'):
+            src = options['source']
+        elif options.__contains__('from'):
+            src = options['from']
+        elif options.__contains__('account'):
+            src = options['account']
 
-"""
- * payment
- * @param options
- *    source|from|account source account, required
- *    destination|to destination account, required
- *    amount payment amount, required
- * @returns {transaction}
- * 创建支付对象
- * come from remote.js
-"""
+        if options.__contains__('destination'):
+            dst = options['destination']
+        elif options.__contains__('to'):
+            dst = options['to']
+        amount = options['amount']
 
+        if not Wallet.isValidAddress(src):
+            tx.tx_json['src'] = Exception('invalid source address')
+            return tx
+        if not Wallet.isValidAddress(dst):
+            tx.tx_json['dst'] = Exception('invalid destination address')
+            return tx
 
-def buildPaymentTx(self, options):
-    tx = Transaction(self, None)
-    if not options:  # typeof options没有转换
-        tx.tx_json['obj'] = Exception('invalid options type')
+        if not utils.isValidAmount(amount):
+            tx.tx_json['amount'] = Exception('invalid amount')
+            return tx
+
+        tx.tx_json['TransactionType'] = 'Payment'
+        tx.tx_json['Account'] = src
+        tx.tx_json['Amount'] = ToAmount(amount)
+        tx.tx_json['Destination'] = dst
         return tx
-    if options.__contains__('source'):
-        src = options['source']
-    elif options.__contains__('from'):
-        src = options['from']
-    elif options.__contains__('account'):
-        src = options['account']
-
-    if options.__contains__('destination'):
-        dst = options['destination']
-    elif options.__contains__('to'):
-        dst = options['to']
-    amount = options['amount']
-
-    if not baselib.isValidAddress(src):
-        tx.tx_json['src'] = Exception('invalid source address')
-        return tx
-    if not baselib.isValidAddress(dst):
-        tx.tx_json['dst'] = Exception('invalid destination address')
-        return tx
-
-    if not utils.isValidAmount(amount):
-        tx.tx_json['amount'] = Exception('invalid amount')
-        return tx
-
-    tx.tx_json['TransactionType'] = 'Payment'
-    tx.tx_json['Account'] = src
-    tx.tx_json['Amount'] = ToAmount(amount)
-    tx.tx_json['Destination'] = dst
-    return tx
 
 
 def __buildRelationSet(options, tx):
