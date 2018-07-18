@@ -9,7 +9,7 @@
 import sys
 sys.path.append("..")
 
-from jingtum_python_baselib.src import utils as baselib
+from jingtum_python_baselib import utils as baselib
 from src.config import Config
 
 import re
@@ -62,17 +62,17 @@ class utils:
         if (not amount):
             return False
         # check amount value
-        if ((not amount.value and amount.value != 0) or not utils.isNum(amount.value)):
+        if ((not amount.__contains__('value') and amount['value'] != 0) or not utils.isNum(amount['value'])):
             return False
         # check amount currency
-        if (not amount.currency or not utils.isValidCurrency(amount.currency)):
+        if (not amount.__contains__('currency') or not utils.isValidCurrency(amount['currency'])):
             return False
         # native currency issuer is empty
-        if (amount.currency == Config.currency and amount.issuer != ''):
+        if (amount['currency'] == Config.currency and amount['issuer'] != ''):
             return False
         # non native currency issuer is not allowed to be empty
-        if (amount.currency != Config.currency
-                and not baselib.isValidAddress(amount.issuer)):
+        if (amount['currency'] != Config.currency
+                and not baselib.isValidAddress(amount['issuer'])):
             return False
         return True
 
@@ -81,18 +81,17 @@ class utils:
      * @param amount
      * @returns {boolean}
     """
-
     def isValidAmount0(amount):
         if (not amount):
             return False
         # check amount currency
-        if (not amount.currency or not utils.isValidCurrency(amount.currency)):
+        if (not amount.__contains__('currency') or not utils.isValidCurrency(amount['currency'])):
             return False
         # native currency issuer is empty
-        if (amount.currency == Config.currency and amount.issuer != ''):
+        if (amount['currency'] == Config.currency and amount['issuer']  != ''):
             return False
         # non native currency issuer is not allowed to be empty
-        if (amount.currency != Config.currency
-                and not baselib.isValidAddress(amount.issuer)):
+        if (amount['currency'] != Config.currency
+                and not baselib.isValidAddress(amount['issuer'] )):
             return False
         return True

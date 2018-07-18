@@ -2,6 +2,7 @@
 from src.config import Config
 import math
 from src.utils.utils import is_number, utils
+from src.util import *
 import json
 
 fee = Config.FEE or 10000
@@ -9,35 +10,6 @@ fee = Config.FEE or 10000
 
 def filterFun(v):
     return v
-
-
-def __hexToString(h):
-    a = []
-    i = 0
-    strLength = len(h)
-
-    if (strLength % 2 == 0):
-        a.extend(chr(int(h[0: 1], 16)))
-        i = 1
-
-    for index in range(i, strLength, 2):
-        a.extend(chr(int(h[index: index+2]), 16))
-
-    return ''.join(a)
-
-
-def stringToHex(s):
-    result = ''
-    for c in s:
-        b = ord(c)
-        # 转换成16进制的ASCII码
-        if b < 16:
-            result += '0'+hex(b).replace('0x', '')
-        else:
-            result += hex(b).replace('0x', '')
-
-    return result
-
 
 def safe_int(num):
     try:
@@ -76,7 +48,7 @@ def MaxAmount(amount):
         _value = Number(amount['value']) * (1.0001)
         amount['value'] = str(_value)
         return amount
-    return Exception('invalid amount to max')
+    return Exception('invalid amount too max')
 
 
 class Transaction:
@@ -171,7 +143,7 @@ class Transaction:
             self.tx_json['memo_len'] = TypeError('memo is too long')
             return self
         _memo = {}
-        _memo['MemoData'] = stringToHex(memo.encode("UTF-8"))
+        _memo['MemoData'] = stringToHex(memo)
         self.tx_json['Memos'] = (self.tx_json['Memos']
                                  or []).append({'Memo': _memo})
 
@@ -250,7 +222,6 @@ class Transaction:
                 self.tx_json['Flags'] += transaction_flags[flag]
 
     def sign(self,callback):
-        from jingtum_python_baselib.src.wallet import Wallet as base
         #导入Serializer 目前未实现
         from remote import Remote
         #2018.6.2 remote类没有翻译完整
@@ -275,7 +246,7 @@ class Transaction:
 
             if(self.tx_json['Memos'] is not None):
                 memo_list = self.tx_json['Memos']
-                memo_list[0]["Memo"]["MemoData"] = __hexToString(memo_list[0]["Memo"]["MemoData"]).decode('UTF-8')
+                memo_list[0]["Memo"]["MemoData"] = hexToString(memo_list[0]["Memo"]["MemoData"]).decode('UTF-8')
 
             if(self.tx_json['SendMax'] is not None and isinstance(self.tx_json['SendMax'],str)):
                 self.tx_json['SendMax'] = Number(self.tx_json['SendMax'])/1000000
@@ -306,7 +277,6 @@ class Transaction:
     """
      * set secret
      * @param secret
-     * come from transaction.js
      * 传入密钥
     """
     def setSecret(self, secret):
@@ -325,7 +295,7 @@ class Transaction:
             self.tx_json.memo_len = Exception('memo is too long')
             return self
         _memo = {}
-        _memo.MemoData = stringToHex(memo.encode('utf-8'))
+        _memo.MemoData = stringToHex(memo)
         self.tx_json.Memos = self.tx_json.Memos + _memo
 
     """
@@ -353,7 +323,7 @@ class Transaction:
         elif self.tx_json.TransactionType == 'Signer':  # 直接将blob传给底层
             data = {
                 "tx_blob": self.tx_json.blob
-            };
+            }
             self._remote.submit('submit', data, self._filter, callback)
         else:  # 不签名交易传给底层
             data = {

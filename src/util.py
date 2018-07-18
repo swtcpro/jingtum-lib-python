@@ -6,10 +6,9 @@
  * Description: 
 """
 
-from numbers import Number
 import re
 
-from jingtum_python_baselib.src.wallet import Wallet
+from jingtum_python_baselib.wallet import Wallet
 
 # Flags for ledger entries
 LEDGER_FLAGS = {
@@ -40,7 +39,7 @@ LEDGER_FLAGS = {
 }
 
 
-def __hexToString(h):
+def hexToString(h):
     a = []
     i = 0
     strLength = len(h)
@@ -55,7 +54,7 @@ def __hexToString(h):
     return ''.join(a)
 
 
-def __stringToHex(s):
+def stringToHex(s):
     result = ''
     for c in s:
         b = ord(c)
