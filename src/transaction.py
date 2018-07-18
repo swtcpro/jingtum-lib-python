@@ -54,7 +54,7 @@ def MaxAmount(amount):
 class Transaction:
     def __init__(self, remote, filter):
         # TODO(zfn):事件驱动注册待实现
-        self._remote = remote
+        self.remote = remote
         self.tx_json = {"Flags": 0, "Fee": fee}
         self._filter = filter or filterFun
         self._secret = 0
@@ -144,8 +144,10 @@ class Transaction:
             return self
         _memo = {}
         _memo['MemoData'] = stringToHex(memo)
-        self.tx_json['Memos'] = (self.tx_json['Memos']
-                                 or []).append({'Memo': _memo})
+        if 'Memos' in self.tx_json:
+            self.tx_json['Memos']['MemoData'] = self.tx_json['Memos']['MemoData'] + _memo['MemoData']
+        else:
+            self.tx_json['Memos'] = _memo
 
     def setFee(self, fee):
         _fee = safe_int(fee)
@@ -169,7 +171,7 @@ class Transaction:
         if (not isinstance(key,str) and len(key) != 40):
             return Exception('invalid path key')
 
-        item = self._remote._paths.get(key)
+        item = self.remote._paths.get(key)
         if (item is not None) :
             return Exception('non exists path key')
 
@@ -223,9 +225,10 @@ class Transaction:
 
     def sign(self,callback):
         #导入Serializer 目前未实现
-        from remote import Remote
+        from src.remote import Remote
+        #from remote import Remote
         #2018.6.2 remote类没有翻译完整
-        remote = Remote({'server': self._remote._url})
+        remote = Remote({'server': self.remote.url})
 
         def connect_callback(err, result):
             if(err is not None):
@@ -260,16 +263,13 @@ class Transaction:
                 #基础货币
                 self.tx_json['TakerGets'] = Number(self.tx_json['TakerGets'])/1000000
 
-            #2018.6.3 wallet类没有翻译完整
-            """
-            wt = base(self._secret)
+            wt = Wallet(self._secret)
             self.tx_json['SigningPubKey'] = wt.getPublicKey()
             prefix = 0x53545800
-            hash = jser.from_json(self.tx_json).hash(prefix)
+            #hash = jser.from_json(self.tx_json).hash(prefix)
             self.tx_json['TxnSignature'] = wt.signTx(hash)
-            self.tx_json['blob'] =  jser.from_json(self.tx_json).to_hex()
-            """
-            self._local_sign = True
+            #self.tx_json['blob'] =  jser.from_json(self.tx_json).to_hex()
+            self.local_sign = True
             callback(None, self.tx_json['blob'])
 
         remote.connect(connect_callback)
@@ -283,22 +283,6 @@ class Transaction:
         self._secret = secret
 
     """
-     * just only memo data
-     * @param memo
-     * 设置备注
-    """
-    def addMemo(self, memo):
-        if not isinstance(memo, str):
-            self.tx_json.memo_type = Exception('invalid memo type')
-            return self
-        if (len(memo) > 2048):
-            self.tx_json.memo_len = Exception('memo is too long')
-            return self
-        _memo = {}
-        _memo.MemoData = stringToHex(memo)
-        self.tx_json.Memos = self.tx_json.Memos + _memo
-
-    """
      * submit request to server
      * @param callback
      * 提交支付
@@ -310,7 +294,7 @@ class Transaction:
             data = {
                 "tx_blob": self.tx_json.blob
             }
-            self._remote.submit('submit', data, self._filter, callback)
+            self.remote.submit('submit', data, self._filter, callback)
 
     def submit(self, callback):
         for key in self.tx_json:
@@ -318,16 +302,16 @@ class Transaction:
                 return callback(self.tx_json[key].message)
 
         data = {}
-        if self._remote._local_sign:  # 签名之后传给底层
+        if self.remote.local_sign:  # 签名之后传给底层
             self.sign(Transaction.submitblob(self, callback))
         elif self.tx_json.TransactionType == 'Signer':  # 直接将blob传给底层
             data = {
                 "tx_blob": self.tx_json.blob
             }
-            self._remote.submit('submit', data, self._filter, callback)
+            self.remote.submit('submit', data, self._filter, callback)
         else:  # 不签名交易传给底层
             data = {
                 "secret": self._secret,
                 "tx_json": self.tx_json
             }
-            self._remote.submit('submit', data, self._filter, callback)
+            self.remote.submit('submit', data, self._filter, callback)

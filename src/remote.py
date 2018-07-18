@@ -44,9 +44,11 @@ def ToAmount(amount):
 
 
 class Remote:
-    def __init__(self, options={'server': 'ws://ts5.jingtum.com:5020', 'local_sign': True}):
+    def __init__(self, options=None):
         self.opts = options
-        self.local_sign = options['local_sign']
+        if 'local_sign' in options:
+            self.local_sign = options['local_sign']
+        self.url = options['server']
         self.server = WebSocketServer(self)
         self.status = {"ledger_index": 0}
         self.requests = {}
@@ -402,10 +404,10 @@ def __buildRelationSet(options, tx):
     des = options['target']
     limit = options['limit']
 
-    if not baselib.isValidAddress(src):
+    if not Wallet.isValidAddress(src):
         tx.tx_json['src'] = Exception('invalid source address')
         return tx
-    if not baselib.isValidAddress(des):
+    if not Wallet.isValidAddress(des):
         tx.tx_json['des'] = Exception('invalid target address')
         return tx
     if not utils.isValidAmount(limit):
@@ -438,7 +440,7 @@ def __buildTrustSet(options, tx):
     quality_out = options['quality_out']
     quality_in = options['quality_in']
 
-    if not baselib.isValidAddress(src):
+    if not Wallet.isValidAddress(src):
         tx.tx_json['src'] = Exception('invalid source address')
         return tx
     if not utils.isValidAmount(limit):

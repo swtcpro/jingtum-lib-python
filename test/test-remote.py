@@ -7,11 +7,11 @@
 """
 import sys
 
-from src.logger import logger
+#from src.logger import logger
 
 sys.path.append("..\src")
 from src.remote import Remote
-
+from src.util import *
 
 def CheckErr(err, result):
     if (err):
@@ -34,11 +34,11 @@ def test(err, callback):
     })
     tx.setSecret('sn37nYrQ6KPJvTFmaBYokS3FjXUWd')
     tx.addMemo('给jDUjqoDZLhzx4DCf6pvSivjkjgtRESY62c支付0.5swt.')  # 可选
+    tx.addMemo('123')
     tx.submit(CheckErr)
-    logger.info(callback)
+    #logger.info(callback)
 
-
-remote = Remote()
+remote = Remote({'server': 'ws://ts5.jingtum.com:5020', 'local_sign': True})
 result = remote.connect(None)
-logger.info(result)
-# test(None, None)
+#logger.info(result)
+test(None, None)
