@@ -49,7 +49,7 @@ class RemoteTest(unittest.TestCase):
         remote = Remote()
         if not isinstance(remote.connect(None), Exception):
             req = remote.request_account_info({'account': 'jsMwaJ7EA4y7QgdvQzaD2CqzQQN4v7vLFK'})
-            result = req.submit()
+            result = remote.parse_account_info(req.submit())
             logger.info(result)
 
     # def test_generateSeed(self):
