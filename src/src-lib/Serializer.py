@@ -292,124 +292,142 @@ def bytes_to_str(self,in_buf):
  # buf is a byte array
  # pointer is an integer index of the buf
 #
-def Serializer(self,buf):
-    if isinstance(buf,[]) or (Buffer and Buffer.isBuffer(buf)):
-        self.buffer = buf
-    elif isinstance(buf,str):
-        self.buffer = hex_str_to_byte_array(buf);#sjcl.codec.bytes.fromBits(sjcl.codec.hex.toBits(buf))
-    elif not buf:
-        self.buffer = []
-    else:
-        raise Exception('Invalid buffer passed.')
-
-    self.pointer = 0
-
-
-#
- # convert the input JSON to a byte array
- # as buffer
-#
-def from_json(self,obj):
-    # Create a copy of the object so we don't modify the original one
-    obj = copy.deepcopy(True, {}, obj)
-    so = Serializer()
-    if isinstance(obj.TransactionType,int):
-        obj.TransactionType = Serializer.lookup_type_tx(obj.TransactionType)
-        if not obj.TransactionType:
-            raise Exception('Transaction type ID is invalid.')
-
-
-
-    if isinstance(obj.LedgerEntryType,int):
-        obj.LedgerEntryType = Serializer.lookup_type_le(obj.LedgerEntryType)
-
-        if not obj.LedgerEntryType:
-            raise Exception('LedgerEntryType ID is invalid.')
-
-
-
-    if isinstance(obj.TransactionType,str):
-        typedef = TRANSACTION_TYPES[obj.TransactionType]
-        if not isinstance(typedef,[]):
-            raise Exception('Transaction type is invalid')
-
-
-        typedef = typedef.slice()
-        obj.TransactionType = typedef.shift()
-    elif isinstance(obj.LedgerEntryType,str):
-        typedef = LEDGER_ENTRY_TYPES[obj.LedgerEntryType]
-
-        if not isinstance(typedef,[]):
-            raise Exception('LedgerEntryType is invalid')
-
-
-        typedef = typedef.slice()
-        obj.LedgerEntryType = typedef.shift()
-
-    elif isinstance(obj.AffectedNodes,object):
-        typedef = METADATA;#binformat
-    else:
-        raise Exception('Object to be serialized must contain either' +
-            ' TransactionType, LedgerEntryType or AffectedNodes.')
-
-    so.serialize(typedef, obj)
-
-    return so
-
-
-#
- # Use TRANSACTION_TYPES info to check if the input
- # TX missing any info
-#
-def check_no_missing_fields(typedef, obj):
-    missing_fields = []
-
-    for i in range(typedef.length-1,0,-1):
-        spec = typedef[i]
-        field = spec[0]
-        requirement = spec[1]
-        # console.log("check missing:", spec);
-
-        if REQUIRED is requirement and obj[field] is None:
-            missing_fields.append(field)
-
-
-
-    if missing_fields.length > 0:
-
-
-        if obj.TransactionType is not None:
-            object_name = Serializer.lookup_type_tx(obj.TransactionType)
-        elif not obj.LedgerEntryType:
-            object_name = Serializer.lookup_type_le(obj.LedgerEntryType)
+class Serializer():
+    def __init__(self,buf):
+        if isinstance(buf,[]) or isinstance(type(buf),bytes):
+            self.buffer = buf
+        elif isinstance(buf,str):
+            self.buffer = hex_str_to_byte_array(buf);#sjcl.codec.bytes.fromBits(sjcl.codec.hex.toBits(buf))
+        elif not buf:
+            self.buffer = []
         else:
-            object_name = "TransactionMetaData"
+            raise Exception('Invalid buffer passed.')
+
+        self.pointer = 0
 
 
-        raise Exception(object_name + " is missing fields: " +
-            json.dumps(missing_fields))
+    #
+     # convert the input JSON to a byte array
+     # as buffer
+    #
+    def from_json(self,obj):
+        # Create a copy of the object so we don't modify the original one
+        obj = copy.deepcopy(True, {}, obj)
+        so = Serializer()
+        if isinstance(obj.TransactionType,int):
+            obj.TransactionType = Serializer.lookup_type_tx(obj.TransactionType)
+            if not obj.TransactionType:
+                raise Exception('Transaction type ID is invalid.')
 
 
 
-#
- # Append the input bytes array to
- # the internal buffer and set the pointer
- # to the end.
-#
-def append(self,bytes):
-    if isinstance(bytes,Serializer):
-        bytes = bytes.buffer
+        if isinstance(obj.LedgerEntryType,int):
+            obj.LedgerEntryType = Serializer.lookup_type_le(obj.LedgerEntryType)
+
+            if not obj.LedgerEntryType:
+                raise Exception('LedgerEntryType ID is invalid.')
 
 
-    self.buffer = self.buffer.concat(bytes)
-    self.pointer += bytes.length
+
+        if isinstance(obj.TransactionType,str):
+            typedef = TRANSACTION_TYPES[obj.TransactionType]
+            if not isinstance(typedef,[]):
+                raise Exception('Transaction type is invalid')
 
 
-def resetPointer(self):
-    self.pointer = 0
+            typedef = typedef.slice()
+            obj.TransactionType = typedef.shift()
+        elif isinstance(obj.LedgerEntryType,str):
+            typedef = LEDGER_ENTRY_TYPES[obj.LedgerEntryType]
+
+            if not isinstance(typedef,[]):
+                raise Exception('LedgerEntryType is invalid')
 
 
-def read(self,bytes):
+            typedef = typedef.slice()
+            obj.LedgerEntryType = typedef.shift()
+
+        elif isinstance(obj.AffectedNodes,object):
+            typedef = METADATA;#binformat
+        else:
+            raise Exception('Object to be serialized must contain either' +
+                ' TransactionType, LedgerEntryType or AffectedNodes.')
+
+        so.serialize(typedef, obj)
+
+        return so
+
+
+    #
+     # Use TRANSACTION_TYPES info to check if the input
+     # TX missing any info
+    #
+    def check_no_missing_fields(typedef, obj):
+        missing_fields = []
+
+        for i in range(typedef.length-1,0,-1):
+            spec = typedef[i]
+            field = spec[0]
+            requirement = spec[1]
+            # console.log("check missing:", spec);
+
+            if REQUIRED is requirement and obj[field] is None:
+                missing_fields.append(field)
+
+
+
+        if missing_fields.length > 0:
+
+
+            if obj.TransactionType is not None:
+                object_name = Serializer.lookup_type_tx(obj.TransactionType)
+            elif not obj.LedgerEntryType:
+                object_name = Serializer.lookup_type_le(obj.LedgerEntryType)
+            else:
+                object_name = "TransactionMetaData"
+
+
+            raise Exception(object_name + " is missing fields: " +
+                json.dumps(missing_fields))
+
+
+
+    #
+     # Append the input bytes array to
+     # the internal buffer and set the pointer
+     # to the end.
+    #
+    def append(self,bytes):
+        if isinstance(bytes,Serializer):
+            bytes = bytes.buffer
+
+
+        self.buffer = self.buffer.concat(bytes)
+        self.pointer += bytes.length
+
+
+    def resetPointer(self):
+        self.pointer = 0
+
+
+    def read(self,bytes):
+            start = self.pointer
+            end = start + bytes
+
+            # console.log("buffer len", self.buffer.length);
+            if end > self.buffer.length:
+                raise Exception('Buffer length exceeded')
+
+
+            result = self.buffer.slice(start, end)
+
+            self.pointer = end
+
+
+            return result
+
+
+    def peek(self, bytes):
         start = self.pointer
         end = start + bytes
 
@@ -417,163 +435,146 @@ def read(self,bytes):
         if end > self.buffer.length:
             raise Exception('Buffer length exceeded')
 
-
         result = self.buffer.slice(start, end)
-
-        self.pointer = end
 
 
         return result
 
 
-def peek(self, bytes):
-    start = self.pointer
-    end = start + bytes
 
-    # console.log("buffer len", self.buffer.length);
-    if end > self.buffer.length:
-        raise Exception('Buffer length exceeded')
-
-    result = self.buffer.slice(start, end)
-
-
-    return result
+    #
+     # Convert the byte array to HEX values
+    #
+    def to_hex(self):
+        return self.bytes_to_str(self.buffer)
 
 
 
-#
- # Convert the byte array to HEX values
-#
-def to_hex(self):
-    return self.bytes_to_str(self.buffer)
+    # #
+    #  # Convert the byte array to JSON format
+    # #
+    # def to_json(self):
+    #     old_pointer = self.pointer
+    #     self.resetPointer()
+    #     output = {}
+    #
+    #     while self.pointer < self.buffer.length:
+    #         #Get the bytes array for the right Serialize type.
+    #         key_and_value = stypes.parse(self)
+    #         key = key_and_value[0]
+    #         value = key_and_value[1]
+    #
+    #         output[key] = Serializer.jsonify_structure(value, key)
+    #
+    #
+    #     self.pointer = old_pointer
+    #
+    #     return output
+    #
 
 
+    # #
+    #  # Conver the input data structure to JSON format
+    #  # function
+    #  # object
+    #  # array
+    #  #
+    # #
+    # def jsonify_structure(self,structure, field_name):
+    #     # console.log("jsonify_structure", typeof structure, field_name);
+    #     if isinstance(structure,'number'):
+    #         if(field_name=='LedgerEntryType'):
+    #             output = stypes.get_ledger_entry_type(structure); # TODO: REPLACE, return string
+    #         elif(field_name=='TransactionResult'):
+    #             output = stypes.get_transaction_result(structure); # TRANSACTION_RESULTS[structure]; // TODO: REPLACE, return string
+    #         elif(field_name=='TransactionType'):
+    #             output = stypes.get_transaction_type(structure); # TRANSACTION_TYPES[structure]
+    #         else:
+    #             output = structure
+    #     elif structure and isinstance(structure,'object'):
+    #         if isinstance(structure.to_json,'function'):
+    #             output = structure.to_json()
+    #         else:
+    #             # new Array or Object
+    #             output = structure.constructor()
+    #
+    #             keys = object.keys(structure)
+    #
+    #             for i in range(0,keys.length):
+    #                 key = keys[i]
+    #                 output[key] = Serializer.jsonify_structure(structure[key], key)
+    #     else:
+    #         output = structure
+    #     return output
+    #
+    #
+    # #
+    #  # Serialize the object
+    # #
+    # def serialize(self,typedef, obj) :
+    #     # Serialize object without end marker
+    #     stypes.Object.serialize(self, obj, True)
+    #
+    #
+    #
+    #
+    # #
+    #  # Hash data using SHA-512 and return the first 256 bits
+    #  # in HEX string format.
+    # #
+    # def hash(self,prefix):
+    #     sign_buffer = Serializer()
+    #     # Add hashing prefix
+    #     if isinstance(prefix,"undefined"):
+    #         stypes.Int32.serialize(sign_buffer, prefix)
+    #
+    #     # Copy buffer to temporary buffer
+    #     sign_buffer.append(self.buffer)
+    #     # console.log("\nSign :", self.bytes_to_str(sign_buffer.buffer));
+    #     return self.bytes_to_str(hashlib.sha512().update(sign_buffer.buffer).digest().slice(0, 32))
+    #
+    #
+    #
+    # def get_field_header(self,type_id, field_id):
+    #     buffer = [0]
+    #
+    #     if type_id > 0xF:
+    #         buffer.append(type_id & 0xFF)
+    #     else:
+    #         buffer[0] += (type_id & 0xF) << 4
+    #
+    #
+    #     if field_id > 0xF:
+    #         buffer.append(field_id & 0xFF)
+    #     else:
+    #         buffer[0] += field_id & 0xF
+    #
+    #
+    #     return buffer
+    #
 
-#
- # Convert the byte array to JSON format
-#
-def to_json(self):
-    old_pointer = self.pointer
-    self.resetPointer()
-    output = {}
-
-    while self.pointer < self.buffer.length:
-        #Get the bytes array for the right Serialize type.
-        key_and_value = stypes.parse(self)
-        key = key_and_value[0]
-        value = key_and_value[1]
-
-        output[key] = Serializer.jsonify_structure(value, key)
-
-
-    self.pointer = old_pointer
-
-    return output
-
-
-
-#
- # Conver the input data structure to JSON format
- # function
- # object
- # array
- #
-#
-def jsonify_structure(self,structure, field_name):
-    # console.log("jsonify_structure", typeof structure, field_name);
-    if isinstance(structure,'number'):
-        if(field_name=='LedgerEntryType'):
-            output = stypes.get_ledger_entry_type(structure); # TODO: REPLACE, return string
-        elif(field_name=='TransactionResult'):
-            output = stypes.get_transaction_result(structure); # TRANSACTION_RESULTS[structure]; // TODO: REPLACE, return string
-        elif(field_name=='TransactionType'):
-            output = stypes.get_transaction_type(structure); # TRANSACTION_TYPES[structure]
-        else:
-            output = structure
-    elif structure and isinstance(structure,'object'):
-        if isinstance(structure.to_json,'function'):
-            output = structure.to_json()
-        else:
-            # new Array or Object
-            output = structure.constructor()
-
-            keys = object.keys(structure)
-
-            for i in range(0,keys.length):
-                key = keys[i]
-                output[key] = Serializer.jsonify_structure(structure[key], key)
-    else:
-        output = structure
-    return output
-
-
-#
- # Serialize the object
-#
-def serialize(self,typedef, obj) :
-    # Serialize object without end marker
-    stypes.Object.serialize(self, obj, True)
-
-
-
-
-#
- # Hash data using SHA-512 and return the first 256 bits
- # in HEX string format.
-#
-def hash(self,prefix):
-    sign_buffer = Serializer()
-    # Add hashing prefix
-    if isinstance(prefix,"undefined"):
-        stypes.Int32.serialize(sign_buffer, prefix)
-
-    # Copy buffer to temporary buffer
-    sign_buffer.append(self.buffer)
-    # console.log("\nSign :", self.bytes_to_str(sign_buffer.buffer));
-    return self.bytes_to_str(hashlib.sha512().update(sign_buffer.buffer).digest().slice(0, 32))
-
-
-
-def get_field_header(self,type_id, field_id):
-    buffer = [0]
-
-    if type_id > 0xF:
-        buffer.append(type_id & 0xFF)
-    else:
-        buffer[0] += (type_id & 0xF) << 4
-
-
-    if field_id > 0xF:
-        buffer.append(field_id & 0xFF)
-    else:
-        buffer[0] += field_id & 0xF
-
-
-    return buffer
-
-
-#
- # Sort the input cmd according to
- # the TX type code.
-#
-def sort_typedef(self,typedef):
-    assert(type(typedef),[])
-    _sort_field_compare(a,b)
-
-def _sort_field_compare(self,a, b):
-        # Sort by type id first, then by field id
-    return a[3] is not b[3] if stypes[a[3]].id - stypes[b[3]].id else a[2] - b[2]
-
-
-    return typedef.sort(sort_field_compare)
-
-
-def lookup_type_tx(self,id):
-    self.assertAlmostEqual(type(id),'number')
-    return TRANSACTION_TYPES[id]
-
-
-def lookup_type_le(self,id):
-    self.assertEqual(type(id),'number')
-    return LEDGER_ENTRY_TYPES[id]
+    # #
+    #  # Sort the input cmd according to
+    #  # the TX type code.
+    # #
+    # def sort_typedef(self,typedef):
+    #     assert(type(typedef),[])
+    #     _sort_field_compare(a,b)
+    #
+    # def _sort_field_compare(self,a, b):
+    #         # Sort by type id first, then by field id
+    #     return a[3] is not b[3] if stypes[a[3]].id - stypes[b[3]].id else a[2] - b[2]
+    #
+    #
+    #     return typedef.sort(sort_field_compare)
+    #
+    #
+    # def lookup_type_tx(self,id):
+    #     self.assertAlmostEqual(type(id),'number')
+    #     return TRANSACTION_TYPES[id]
+    #
+    #
+    # def lookup_type_le(self,id):
+    #     self.assertEqual(type(id),'number')
+    #     return LEDGER_ENTRY_TYPES[id]
 
