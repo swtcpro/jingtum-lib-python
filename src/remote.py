@@ -44,11 +44,12 @@ def ToAmount(amount):
 
 
 class Remote:
-    def __init__(self, options=None):
-        self.opts = options
-        if 'local_sign' in options:
-            self.local_sign = options['local_sign']
-        self.url = options['server']
+    def __init__(self):
+        # self.opts = options
+        # if 'local_sign' in options:
+        #     self.local_sign = options['local_sign']
+        # self.url = options['server']
+        self.local_sign = True
         self.server = WebSocketServer(self)
         self.status = {"ledger_index": 0}
         self.requests = {}
@@ -324,6 +325,32 @@ class Remote:
 
         return self.request_account('account_info', options, req)
 
+    def request_account_tums(self, options):
+        """
+        account tums    请求账号能交易代币
+        return account supports currency, including
+        send currency and receive currency
+        :param options: account(required): the query account
+        :return:
+        """
+        req = Request(self, None, None)
+        if not isinstance(options, dict):
+            req.message['type'] = Exception('invalid options type')
+            return req
+
+        return self.request_account('account_currencies', options, req)
+
+    # import RelationTypes  src.transaction
+    from src.transaction import RelationTypes
+    # def request_Account_relations(self, options):
+    #     req = Request(self, None, None)
+    #     if not isinstance(options, dict):
+    #         req.message['type'] = Exception('invalid options type')
+    #     if not ~RelationTypes
+    #         return req
+    #
+    #     return self.request_account('account_currencies', options, req)
+
     def parse_transaction(self, data):
         data = json.loads(data)
         return data['result']
@@ -357,6 +384,14 @@ class Remote:
         }
         return account_data
 
+    def parse_account_tums(self, data):
+        data = json.loads(data)
+        return {
+            'ledger_index': data['result']['ledger_current_index'],
+            'receive_currencies': data['result']['receive_currencies'],
+            'send_currencies': data['result']['send_currencies'],
+            'validated': data['result']['validated']
+        }
 
     """
      * payment
@@ -405,7 +440,7 @@ class Remote:
 
     ##设置账号属性
     def buildAccountSetTx(self, options):
-        tx = Transaction(self,None)
+        tx = Transaction(self, None)
         if not options:
             tx.tx_json['obj'] = ValueError('invalid options type')
             return tx
@@ -431,11 +466,11 @@ class Remote:
         if options.__contains__('set_flag'):
             set_flag = options['set_flag']
         elif options.__contains__('set'):
-            set_flag =options['set']
+            set_flag = options['set']
         if options.__contains__('clear_flag'):
             clear_flag = options['clear_flag']
         elif options.__contains__('clear'):
-            clear_flag =options['clear']
+            clear_flag = options['clear']
         if not utils.isValidAmount():
             pass
         tx.tx_json['TransactionType'] = 'AccountSet'
@@ -654,4 +689,3 @@ def buildRelationTx(self, options):
         return self.__buildRelationSet(options, tx)
     tx.tx_json['msg'] = Exception('build relation set should not go here')
     return tx
-

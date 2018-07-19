@@ -52,6 +52,15 @@ class RemoteTest(unittest.TestCase):
             result = remote.parse_account_info(req.submit())
             logger.info(result)
 
+    def test_request_account_tums(self):
+        remote = Remote()
+        if not isinstance(remote.connect(None), Exception):
+            req = remote.request_account_tums({'account': 'jEkffY8XtkEtkUKyYQT1Fv7MDp3grAtwdH'})
+            result = remote.parse_account_tums(req.submit())
+            logger.info(result)
+
+
+
     # def test_generateSeed(self):
     #     randBytes = ''.join(random.choice(keypairs.alphabet) for _ in range(16))  # 'Buffer'+16个字节的随机数
     #     return keypairs.__encode(33, randBytes)

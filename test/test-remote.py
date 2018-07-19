@@ -38,7 +38,7 @@ def test(err, callback):
     tx.submit(CheckErr)
     #logger.info(callback)
 
-remote = Remote({'server': 'ws://ts5.jingtum.com:5020', 'local_sign': True})
+remote = Remote()
 result = remote.connect(None)
 #logger.info(result)
 test(None, None)
