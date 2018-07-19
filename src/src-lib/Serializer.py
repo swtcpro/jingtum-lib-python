@@ -45,39 +45,39 @@ base = [
 ]
 
 TRANSACTION_TYPES = {
-    "AccountSet": [3].concat(base, [
+    "AccountSet": [3]+base+ [
         ['EmailHash', OPTIONAL],
         ['WalletLocator', OPTIONAL],
         ['WalletSize', OPTIONAL],
         ['MessageKey', OPTIONAL],
         ['Domain', OPTIONAL],
         ['TransferRate', OPTIONAL]
-    ]),
-    "TrustSet": [20].concat(base, [
+    ],
+    "TrustSet": [20]+base+[
         ['LimitAmount', OPTIONAL],
         ['QualityIn', OPTIONAL],
         ['QualityOut', OPTIONAL]
-    ]),
-    "OfferCreate": [7].concat(base, [
+    ],
+    "OfferCreate": [7]+base+[
         ['TakerPays', REQUIRED],
         ['TakerGets', REQUIRED],
         ['Expiration', OPTIONAL]
-    ]),
-    "OfferCancel": [8].concat(base, [
+    ],
+    "OfferCancel": [8]+base+[
         ['OfferSequence', REQUIRED]
-    ]),
-    "SetRegularKey": [5].concat(base, [
+    ],
+    "SetRegularKey": [5]+base+ [
         ['RegularKey', REQUIRED]
-    ]),
-    "Payment": [0].concat(base, [
+    ],
+    "Payment": [0]+base+ [
         ['Destination', REQUIRED],
         ['Amount', REQUIRED],
         ['SendMax', OPTIONAL],
         ['Paths', DEFAULT],
         ['InvoiceID', OPTIONAL],
         ['DestinationTag', OPTIONAL]
-    ]),
-    "Contract": [9].concat(base, [
+    ],
+    "Contract": [9]+base+ [
         ['Expiration', REQUIRED],
         ['BondAmount', REQUIRED],
         ['StampEscrow', REQUIRED],
@@ -86,20 +86,20 @@ TRANSACTION_TYPES = {
         ['FundCode', OPTIONAL],
         ['RemoveCode', OPTIONAL],
         ['ExpireCode', OPTIONAL]
-    ]),
-    "RemoveContract": [10].concat(base, [
+    ],
+    "RemoveContract": [10]+base+ [
         ['Target', REQUIRED]
-    ]),
-    "EnableFeature": [100].concat(base, [
+    ],
+    "EnableFeature": [100]+base+ [
         ['Feature', REQUIRED]
-    ]),
-    "SetFee": [101].concat(base, [
+    ],
+    "SetFee": [101]+base+ [
         ['Features', REQUIRED],
         ['BaseFee', REQUIRED],
         ['ReferenceFeeUnits', REQUIRED],
         ['ReserveBase', REQUIRED],
         ['ReserveIncrement', REQUIRED]
-    ])
+    ]
 }
 
 sleBase = [
@@ -109,7 +109,7 @@ sleBase = [
 ]
 
 LEDGER_ENTRY_TYPES = {
-    "AccountRoot": [97].concat(sleBase, [
+    "AccountRoot": [97]+sleBase+ [
         ['Sequence', REQUIRED],
         ['PreviousTxnLgrSeq', REQUIRED],
         ['TransferRate', OPTIONAL],
@@ -123,8 +123,8 @@ LEDGER_ENTRY_TYPES = {
         ['MessageKey', OPTIONAL],
         ['Domain', OPTIONAL],
         ['Account', REQUIRED],
-        ['RegularKey', OPTIONAL]]),
-    "Contract": [99].concat(sleBase, [
+        ['RegularKey', OPTIONAL]],
+    "Contract": [99]+sleBase+ [
         ['PreviousTxnLgrSeq', REQUIRED],
         ['Expiration', REQUIRED],
         ['BondAmount', REQUIRED],
@@ -136,8 +136,8 @@ LEDGER_ENTRY_TYPES = {
         ['CreateCode', OPTIONAL],
         ['Account', REQUIRED],
         ['Owner', REQUIRED],
-        ['Issuer', REQUIRED]]),
-    "DirectoryNode": [100].concat(sleBase, [
+        ['Issuer', REQUIRED]],
+    "DirectoryNode": [100]+sleBase+ [
         ['IndexNext', OPTIONAL],
         ['IndexPrevious', OPTIONAL],
         ['ExchangeRate', OPTIONAL],
@@ -147,31 +147,31 @@ LEDGER_ENTRY_TYPES = {
         ['TakerPaysIssuer', OPTIONAL],
         ['TakerGetsCurrency', OPTIONAL],
         ['TakerGetsIssuer', OPTIONAL],
-        ['Indexes', REQUIRED]]),
-    "EnabledFeatures": [102].concat(sleBase, [
-        ['Features', REQUIRED]]),
-    "FeeSettings": [115].concat(sleBase, [
+        ['Indexes', REQUIRED]],
+    "EnabledFeatures": [102]+sleBase+ [
+        ['Features', REQUIRED]],
+    "FeeSettings": [115]+sleBase+ [
         ['ReferenceFeeUnits', REQUIRED],
         ['ReserveBase', REQUIRED],
         ['ReserveIncrement', REQUIRED],
         ['BaseFee', REQUIRED],
-        ['LedgerIndex', OPTIONAL]]),
-    "GeneratorMap": [103].concat(sleBase, [
-        ['Generator', REQUIRED]]),
-    "LedgerHashes": [104].concat(sleBase, [
+        ['LedgerIndex', OPTIONAL]],
+    "GeneratorMap": [103]+sleBase+ [
+        ['Generator', REQUIRED]],
+    "LedgerHashes": [104]+sleBase+ [
         ['LedgerEntryType', REQUIRED],
         ['Flags', REQUIRED],
         ['FirstLedgerSequence', OPTIONAL],
         ['LastLedgerSequence', OPTIONAL],
         ['LedgerIndex', OPTIONAL],
-        ['Hashes', REQUIRED]]),
-    "Nickname": [110].concat(sleBase, [
+        ['Hashes', REQUIRED]],
+    "Nickname": [110]+sleBase+ [
         ['LedgerEntryType', REQUIRED],
         ['Flags', REQUIRED],
         ['LedgerIndex', OPTIONAL],
         ['MinimumOffer', OPTIONAL],
-        ['Account', REQUIRED]]),
-    "Offer": [111].concat(sleBase, [
+        ['Account', REQUIRED]],
+    "Offer": [111]+sleBase+ [
         ['LedgerEntryType', REQUIRED],
         ['Flags', REQUIRED],
         ['Sequence', REQUIRED],
@@ -184,8 +184,8 @@ LEDGER_ENTRY_TYPES = {
         ['BookDirectory', REQUIRED],
         ['TakerPays', REQUIRED],
         ['TakerGets', REQUIRED],
-        ['Account', REQUIRED]]),
-    "SkywellState": [114].concat(sleBase, [
+        ['Account', REQUIRED]],
+    "SkywellState": [114]+sleBase+ [
         ['LedgerEntryType', REQUIRED],
         ['Flags', REQUIRED],
         ['PreviousTxnLgrSeq', REQUIRED],
@@ -199,7 +199,7 @@ LEDGER_ENTRY_TYPES = {
         ['LedgerIndex', OPTIONAL],
         ['Balance', REQUIRED],
         ['LowLimit', REQUIRED],
-        ['HighLimit', REQUIRED]])
+        ['HighLimit', REQUIRED]]
 }
 
 
