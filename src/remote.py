@@ -11,10 +11,10 @@
 """
 import json
 from numbers import Number
+
 from eventemitter import EventEmitter
 
 from jingtum_python_baselib.wallet import Wallet
-
 from src import util
 from src.config import Config
 from src.request import Request
@@ -37,7 +37,7 @@ LEDGER_OPTIONS = ['closed', 'header', 'current']
 def ToAmount(amount):
     if (amount.__contains__('value') and int(amount['value']) > 100000000000):
         return Exception('invalid amount: amount\'s maximum value is 100000000000')
-    if (amount['currency']== Config.currency):
+    if (amount['currency'] == Config.currency):
         # return new String(parseInt(Number(amount.value) * 1000000.00))
         return str(int(amount['value'] * 1000000.00))
     return amount
@@ -309,7 +309,7 @@ class Remote:
             req.message['limit'] = limit
         if marker:
             req.message['marker'] = marker
-        return
+        return req
 
     def request_account_info(self, options):
         """
@@ -348,6 +348,16 @@ class Remote:
             'state': data['result']['info']['server_state']
         }
 
+    def parse_account_info(self, data):
+        data = json.loads(data)
+        print(data)
+        account_data = {
+            'account_data': data['result']['account_data'],
+            'ledger_index': data['result']['ledger_current_index']
+        }
+        return account_data
+
+
     """
      * payment
      * @param options
@@ -357,6 +367,7 @@ class Remote:
      * @returns {transaction}
      * 创建支付对象
     """
+
     def buildPaymentTx(self, options):
         tx = Transaction(self, None)
         if not options:  # typeof options没有转换
