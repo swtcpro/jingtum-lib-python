@@ -16,13 +16,13 @@ def hash(message):
     return hashlib.sha512().update(message).digest()[0:32]
 
 class Wallet:
-    def __init__(self):
-        #try:
-        #    self.generate(self)
-        #    #self._secret = secret
-        #except Exception:
-        self.key = None
-
+    def __init__(self, secret):
+        try:
+            self.keypairs = root_key_from_seed(parse_seed(secret))
+            self.secret = secret
+        except Exception:
+            self.keypairs = None
+            self.secret = None
 
     """
      * static funcion
@@ -32,8 +32,8 @@ class Wallet:
     @staticmethod
     def generate():
         secret = get_secret()
-        key = root_key_from_seed(parse_seed(secret))
-        address = get_jingtum_from_key(key)
+        keypairs = root_key_from_seed(parse_seed(secret))
+        address = get_jingtum_from_key(keypairs)
         return {'secret': secret, 'address': address}
 
     """
@@ -45,8 +45,8 @@ class Wallet:
     @staticmethod
     def fromSecret(secret):
         try:
-            key = root_key_from_seed(parse_seed(secret))
-            address = get_jingtum_from_key(key)
+            keypairs = root_key_from_seed(parse_seed(secret))
+            address = get_jingtum_from_key(keypairs)
             return {'secret': secret, 'address': address}
         except Exception:
             return None
@@ -80,7 +80,22 @@ class Wallet:
             return False
 
     """
+     * static function
+     * check if secret is valid
+     * @param secret
+     * @returns {boolean}
+    """
+    @staticmethod
+    def isValidSecret(secret):
+        try:
+            parse_seed(secret)
+            return True
+        except Exception:
+            return False
+
+    """
      * sign message with wallet privatekey
+     * Export DER encoded signature in Array
      * @param message
      * @returns {*}
     """
@@ -90,7 +105,6 @@ class Wallet:
         if not self.key:
             return None
             # Verify a correct signature is created (uses a fixed k value):
-        #message = b'hello'
         result = jingtum_sign(self.key, message.encode())
         return result
 
@@ -99,9 +113,9 @@ class Wallet:
      * @returns {*}
     """
     def address(self):
-        if not self.key:
+        if not self.keypairs:
             return None
-        address = get_jingtum_from_key(self.key)
+        address = get_jingtum_from_key(self.keypairs)
         return address
 
     """
@@ -110,17 +124,19 @@ class Wallet:
      * not finish yet
     """
     def secret(self):
-        if not self._keypairs:
+        if not self.keypairs:
             return None
-        return self._secret
+        return self.secret
 
-    """
-     * not finish yet
-    """
     def toJson(self):
-        if not self._keypairs:
+        if not self.keypairs:
             return None
         return {
             'secret': self.secret(),
             'address': self.address()
         }
+
+    def getPublicKey(self):
+        if not self.keypairs:
+            return None
+        return get_jingtum_publickey(self.keypairs)

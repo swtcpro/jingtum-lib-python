@@ -119,9 +119,7 @@ def root_key_from_seed(seed):
     key = SigningKey.from_secret_exponent(secret, curves.SECP256k1)
     # Attach the generators as supplemental data
     key.private_gen = private_gen
-    #print('private_gen is ', private_gen)
     key.public_gen = public_gen
-    #print('public_gen is ', public_gen)
     return key
 
 def first_half_of_sha512(*bytes):
@@ -168,6 +166,11 @@ def get_jingtum_from_secret(seed):
     pubkey = ecc_point_to_bytes_compressed(key.privkey.public_key.point, pad=True)
     return get_jingtum_from_pubkey(pubkey)
 """
+
+def get_jingtum_publickey(key):
+    """Another helper. Returns the jingtum publickey from the key."""
+    pubkey = ecc_point_to_bytes_compressed(key.privkey.public_key.point, pad=True)
+    return fmt_hex(pubkey)
 
 def get_jingtum_from_key(key):
     """Another helper. Returns the first jingtum address from the key."""
