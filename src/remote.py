@@ -19,6 +19,7 @@ from src import util
 from src.config import Config
 from src.request import Request
 from src.server import Server, WebSocketServer
+from src.transaction import RelationTypes
 from src.transaction import Transaction
 from src.utils.cache import LRUCache
 from src.utils.utils import utils
@@ -341,15 +342,37 @@ class Remote:
         return self.request_account('account_currencies', options, req)
 
     # import RelationTypes  src.transaction
-    from src.transaction import RelationTypes
-    # def request_Account_relations(self, options):
-    #     req = Request(self, None, None)
-    #     if not isinstance(options, dict):
-    #         req.message['type'] = Exception('invalid options type')
-    #     if not ~RelationTypes
-    #         return req
-    #
-    #     return self.request_account('account_currencies', options, req)
+
+    def request_account_relations(self, options):
+        req = Request(self, None, None)
+        if not isinstance(options, dict):
+            req.message['type'] = Exception('invalid options type')
+        if not ~RelationTypes.index(options['type']):
+            req.message['relation_type'] = Exception('invalid realtion type')
+            return req
+
+        if options['type'] == 'trust':
+            return self.request_account('account_lines', options, req)
+        elif options['type'] == 'authorize':
+            return
+        elif options['type'] == 'freeze':
+            return self.request_account('account_relation', options, req)
+
+        req.message['msg'] = Exception('relation should not go here')
+        return req
+
+    def request_account_offers(self, options):
+        """
+        查询账户挂单
+        :param options: account(required): the query account
+        :return:
+        """
+        req = Request(self, None, None)
+        if not isinstance(options, dict):
+            req.message['type'] = Exception('invalid options type')
+            return req
+
+        return self.request_account('account_offers', options, req)
 
     def parse_transaction(self, data):
         data = json.loads(data)
@@ -392,6 +415,29 @@ class Remote:
             'send_currencies': data['result']['send_currencies'],
             'validated': data['result']['validated']
         }
+
+    def parse_request_account_relations(self, data):
+        data = json.loads(data)
+        return {
+            'account': data['result']['account'],
+            'ledger_index': data['result']['ledger_current_index'],
+            'lines': data['result']['lines'],
+            'validated': data['result']['validated']
+        }
+
+    # def parse_request_account_offers(self, data):
+    #     data = json.loads(data)
+    #     print(data)
+    #
+    #     result = {
+    #         'account': data['result']['account'],
+    #         'ledger_index': data['result']['ledger_current_index'],
+    #         'offers': data['result']['offers'],
+    #         'seq': data['seq']
+    #     }
+    #     if data['result']['offers']:
+    #
+    #     return result
 
     """
      * payment
