@@ -314,40 +314,40 @@ class Serializer():
         # Create a copy of the object so we don't modify the original one
         obj = copy.deepcopy(True, {}, obj)
         so = Serializer()
-        if isinstance(obj.TransactionType,int):
-            obj.TransactionType = Serializer.lookup_type_tx(obj.TransactionType)
-            if not obj.TransactionType:
+        if isinstance(obj['TransactionType'],int):
+            obj['TransactionType'] = Serializer.lookup_type_tx(obj['TransactionType'])
+            if not obj['TransactionType']:
                 raise Exception('Transaction type ID is invalid.')
 
 
 
-        if isinstance(obj.LedgerEntryType,int):
-            obj.LedgerEntryType = Serializer.lookup_type_le(obj.LedgerEntryType)
+        if isinstance(obj['LedgerEntryType'],int):
+            obj['LedgerEntryType'] = Serializer.lookup_type_le(obj['LedgerEntryType'])
 
-            if not obj.LedgerEntryType:
+            if not obj['LedgerEntryType']:
                 raise Exception('LedgerEntryType ID is invalid.')
 
 
 
-        if isinstance(obj.TransactionType,str):
-            typedef = TRANSACTION_TYPES[obj.TransactionType]
+        if isinstance(obj['TransactionType'],str):
+            typedef = TRANSACTION_TYPES[obj['TransactionType']]
             if not isinstance(typedef,[]):
                 raise Exception('Transaction type is invalid')
 
 
             typedef = typedef.slice()
-            obj.TransactionType = typedef.shift()
-        elif isinstance(obj.LedgerEntryType,str):
-            typedef = LEDGER_ENTRY_TYPES[obj.LedgerEntryType]
+            obj['TransactionType'] = typedef.shift()
+        elif isinstance(obj['LedgerEntryType'],str):
+            typedef = LEDGER_ENTRY_TYPES[obj['LedgerEntryType']]
 
             if not isinstance(typedef,[]):
                 raise Exception('LedgerEntryType is invalid')
 
 
             typedef = typedef.slice()
-            obj.LedgerEntryType = typedef.shift()
+            obj['LedgerEntryType'] = typedef.shift()
 
-        elif isinstance(obj.AffectedNodes,object):
+        elif isinstance(obj['AffectedNodes'],'object'):
             typedef = METADATA;#binformat
         else:
             raise Exception('Object to be serialized must contain either' +
@@ -358,97 +358,97 @@ class Serializer():
         return so
 
 
+    # #
+    #  # Use TRANSACTION_TYPES info to check if the input
+    #  # TX missing any info
+    # #
+    # def check_no_missing_fields(typedef, obj):
+    #     missing_fields = []
     #
-     # Use TRANSACTION_TYPES info to check if the input
-     # TX missing any info
+    #     for i in range(typedef.length-1,0,-1):
+    #         spec = typedef[i]
+    #         field = spec[0]
+    #         requirement = spec[1]
+    #         # console.log("check missing:", spec);
     #
-    def check_no_missing_fields(typedef, obj):
-        missing_fields = []
-
-        for i in range(typedef.length-1,0,-1):
-            spec = typedef[i]
-            field = spec[0]
-            requirement = spec[1]
-            # console.log("check missing:", spec);
-
-            if REQUIRED is requirement and obj[field] is None:
-                missing_fields.append(field)
-
-
-
-        if missing_fields.length > 0:
-
-
-            if obj.TransactionType is not None:
-                object_name = Serializer.lookup_type_tx(obj.TransactionType)
-            elif not obj.LedgerEntryType:
-                object_name = Serializer.lookup_type_le(obj.LedgerEntryType)
-            else:
-                object_name = "TransactionMetaData"
-
-
-            raise Exception(object_name + " is missing fields: " +
-                json.dumps(missing_fields))
-
-
-
+    #         if REQUIRED is requirement and obj[field] is None:
+    #             missing_fields.append(field)
     #
-     # Append the input bytes array to
-     # the internal buffer and set the pointer
-     # to the end.
     #
-    def append(self,bytes):
-        if isinstance(bytes,Serializer):
-            bytes = bytes.buffer
-
-
-        self.buffer = self.buffer.concat(bytes)
-        self.pointer += bytes.length
-
-
-    def resetPointer(self):
-        self.pointer = 0
-
-
-    def read(self,bytes):
-            start = self.pointer
-            end = start + bytes
-
-            # console.log("buffer len", self.buffer.length);
-            if end > self.buffer.length:
-                raise Exception('Buffer length exceeded')
-
-
-            result = self.buffer.slice(start, end)
-
-            self.pointer = end
-
-
-            return result
-
-
-    def peek(self, bytes):
-        start = self.pointer
-        end = start + bytes
-
-        # console.log("buffer len", self.buffer.length);
-        if end > self.buffer.length:
-            raise Exception('Buffer length exceeded')
-
-        result = self.buffer.slice(start, end)
-
-
-        return result
-
-
-
     #
-     # Convert the byte array to HEX values
+    #     if missing_fields.length > 0:
     #
-    def to_hex(self):
-        return self.bytes_to_str(self.buffer)
-
-
+    #
+    #         if obj.TransactionType is not None:
+    #             object_name = Serializer.lookup_type_tx(obj.TransactionType)
+    #         elif not obj.LedgerEntryType:
+    #             object_name = Serializer.lookup_type_le(obj.LedgerEntryType)
+    #         else:
+    #             object_name = "TransactionMetaData"
+    #
+    #
+    #         raise Exception(object_name + " is missing fields: " +
+    #             json.dumps(missing_fields))
+    #
+    #
+    #
+    # #
+    #  # Append the input bytes array to
+    #  # the internal buffer and set the pointer
+    #  # to the end.
+    # #
+    # def append(self,bytes):
+    #     if isinstance(bytes,Serializer):
+    #         bytes = bytes.buffer
+    #
+    #
+    #     self.buffer = self.buffer.concat(bytes)
+    #     self.pointer += bytes.length
+    #
+    #
+    # def resetPointer(self):
+    #     self.pointer = 0
+    #
+    #
+    # def read(self,bytes):
+    #         start = self.pointer
+    #         end = start + bytes
+    #
+    #         # console.log("buffer len", self.buffer.length);
+    #         if end > self.buffer.length:
+    #             raise Exception('Buffer length exceeded')
+    #
+    #
+    #         result = self.buffer.slice(start, end)
+    #
+    #         self.pointer = end
+    #
+    #
+    #         return result
+    #
+    #
+    # def peek(self, bytes):
+    #     start = self.pointer
+    #     end = start + bytes
+    #
+    #     # console.log("buffer len", self.buffer.length);
+    #     if end > self.buffer.length:
+    #         raise Exception('Buffer length exceeded')
+    #
+    #     result = self.buffer.slice(start, end)
+    #
+    #
+    #     return result
+    #
+    #
+    #
+    # #
+    #  # Convert the byte array to HEX values
+    # #
+    # def to_hex(self):
+    #     return self.bytes_to_str(self.buffer)
+    #
+    #
 
     # #
     #  # Convert the byte array to JSON format
