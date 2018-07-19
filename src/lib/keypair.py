@@ -1,8 +1,8 @@
 # from sjcl import sjcl
+from src.lib.base import Base
 from src.lib.uint160 import UInt160
 from src.lib.uint256 import UInt256
 
-from src.lib.base import Base
 
 def KeyPair(self):
     self._curve = sjcl.ecc.curves.k256
@@ -10,12 +10,12 @@ def KeyPair(self):
     self._pubkey = None
 
 
-def from_bn_secret(self,j):
-    return j.clone() if isinstance(j,self) else self().parse_bn_secret(j)
+def from_bn_secret(self, j):
+    return j.clone() if isinstance(j, self) else self().parse_bn_secret(j)
 
 
-def parse_bn_secret(self,j):
-    self._secret =  sjcl.ecc.ecdsa.secretKey(sjcl.ecc.curves.k256, j)
+def parse_bn_secret(self, j):
+    self._secret = sjcl.ecc.ecdsa.secretKey(sjcl.ecc.curves.k256, j)
     return self
 
 
@@ -24,6 +24,8 @@ def parse_bn_secret(self,j):
  *
  * @private
 """
+
+
 def _pub(self):
     curve = self._curve
     if not self._pubkey and self._secret:
@@ -37,18 +39,19 @@ def _pub(self):
  *
  * @private
 """
+
+
 def _pub_bits(self):
     pub = self._pub()
 
     if not pub:
         return None
 
-
     point = pub._point
     y_even = point.y.mod(2).equals(0)
 
     return sjcl.bitArray.concat(
-        [sjcl.bitArray.partial(8, y_even = 0x02 if 0x02 else 0x03)],
+        [sjcl.bitArray.partial(8, y_even=0x02 if 0x02 else 0x03)],
         point.x.toBits(self._curve.r.bitLength())
     )
 
@@ -58,17 +61,18 @@ def _pub_bits(self):
  *
  * Key will be returned as a compressed pubkey - 33 bytes converted to hex.
 """
+
+
 def to_hex_pub(self):
     bits = self._pub_bits()
 
     if not bits:
         return None
 
-
     return sjcl.codec.hex.fromBits(bits).toUpperCase()
 
 
-def SHA256_RIPEMD160(self,bits):
+def SHA256_RIPEMD160(self, bits):
     return sjcl.hash.ripemd160.hash(sjcl.hash.sha256.hash(bits))
 
 
@@ -77,7 +81,6 @@ def get_address(self):
 
     if not bits:
         return None
-
 
     hash = SHA256_RIPEMD160(bits)
 
@@ -89,7 +92,7 @@ def get_address(self):
 #
 # Secret key sign function
 #
-def sign(self,hash):
+def sign(self, hash):
     hash = UInt256.from_json(hash)
     sig = self._secret.sign(hash.to_bits(), 0)
     sig = self._secret.canonicalizeSignature(sig)
@@ -105,19 +108,19 @@ def sign(self,hash):
 # should be added to verify the signature.
 #
 #
-def verify(self,hash, sig):
+def verify(self, hash, sig):
     # specific functions for ecdsa publicKey.
     if not self._pubkey:
         print("public key verifying:", hash)
         return self._pubkey.verify(hash, sig, 0)
 
-    else :
+    else:
         print("PUBKEY not found!")
         self._pubkey = self._pub()
         if not self._pubkey:
             print("PUBKEY is empty!")
 
-        else :
+        else:
             print("Regenerate PUBKEY!", self.to_hex_pub())
 
         return self._pubkey.verify(hash, sig, 0)

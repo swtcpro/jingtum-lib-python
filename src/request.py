@@ -6,8 +6,9 @@
  * Time: 16:44
  * Description: request类
 """
+
+from eventemitter import EventEmitter
 from src.utils.utils import *
-import re
 
 
 class Request:
@@ -17,14 +18,15 @@ class Request:
         self.filter = filter
 
         self.message = {}
+        self.emitter = EventEmitter()
 
-    def submit(self, callback):
+    def submit(self):
         for key in self.message:
             if isinstance(self.message[key], Exception):
                 callback = self.message[key]
                 return callback
 
-        self.remote.submit(self.command, self.message, self.filter, callback)
+        return self.remote.submit(self.command, self.message)
 
     def select_ledger(self, ledger):
         """
@@ -32,11 +34,11 @@ class Request:
         :param ledger:  账本的Index或者hash
         :return: Request对象
         """
-        if (isinstance(ledger, str) and ~LEDGER_STATES.index(ledger)):
+        if isinstance(ledger, str) and LEDGER_STATES.index(ledger):
             self.message['ledger_index'] = ledger
-        elif (isinstance(ledger, str) and is_number(ledger)):
+        elif isinstance(ledger, str) and is_number(ledger):
             self.message['ledger_index'] = ledger
-        elif (re.match('^[A-F0-9]+$', ledger) is not None):
+        elif re.match('^[A-F0-9]+$', ledger) is not None:
             self.message['ledger_index'] = ledger
         else:
             self.message['ledger_index'] = 'validated'

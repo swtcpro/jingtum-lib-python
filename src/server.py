@@ -57,26 +57,28 @@ class WebSocketServer(Server):
     def connect(self, callback):
         if self.connected:
             return
-        # if self.ws is None:
+            # if self.ws is None:
         #     self.ws.close()
         try:
             self.ws = create_connection(self.ws_address)
+            self.opened = True
         except Exception as e:
             logger.error(e)
             return e
 
-        self.emitter.on("open", self.socket_open(callback=callback))
+        self.emitter.on("open", self.socket_open)
         self.emitter.on('message', self.remote.handle_message)
         self.emitter.on('close', self.handle_close)
+        return
 
-    def socket_open(self, callback):
+    def socket_open(self):
         """
         socket打开的回调函数
         :return:
         """
         self.opened = True
         req = self.remote.subscribe(["ledger", "server"])
-        req.submit(callback)
+        return req.submit()
 
     # 代码进行到此处，接下来需要构建
     # 其他message、close和error的回调
@@ -114,7 +116,7 @@ class WebSocketServer(Server):
         if not self.connected:
             self.opened = False
 
-    def send_message(self, command, data, callback):
+    def send_message(self, command, data):
         """
         refuse to send msg if connection blows out
         :param command:
@@ -127,7 +129,7 @@ class WebSocketServer(Server):
         msg = dict({'id': req_id, 'command': command}, **data)
         self.ws.send(json.dumps(msg))
         callback = self.ws.recv()
-        return req_id
+        return {'req_id': req_id, 'callback': callback}
 
     def send(self, data):
         ret = None
