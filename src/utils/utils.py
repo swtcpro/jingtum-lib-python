@@ -9,7 +9,7 @@
 import sys
 sys.path.append("..")
 
-from jingtum_python_baselib import utils as baselib
+from jingtum_python_baselib.wallet import Wallet
 from src.config import Config
 
 import re
@@ -72,7 +72,7 @@ class utils:
             return False
         # non native currency issuer is not allowed to be empty
         if (amount['currency'] != Config.currency
-                and not baselib.isValidAddress(amount['issuer'])):
+                and not Wallet.isValidAddress(amount['issuer'])):
             return False
         return True
 
@@ -92,6 +92,6 @@ class utils:
             return False
         # non native currency issuer is not allowed to be empty
         if (amount['currency'] != Config.currency
-                and not baselib.isValidAddress(amount['issuer'] )):
+                and not Wallet.isValidAddress(amount['issuer'])):
             return False
         return True
