@@ -50,7 +50,7 @@ class Remote:
         # if 'local_sign' in options:
         #     self.local_sign = options['local_sign']
         # self.url = options['server']
-        self.local_sign = True
+        self.local_sign = False
         self.server = WebSocketServer(self)
         self.status = {"ledger_index": 0}
         self.requests = {}
@@ -188,7 +188,8 @@ class Remote:
             # 'filter': filter,
             'callback': result['callback']
         }
-        return result['callback']
+        #return result['callback']
+        return result
         # callback()
 
     def subscribe(self, streams):
