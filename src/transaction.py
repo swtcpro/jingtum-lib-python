@@ -302,7 +302,7 @@ class Transaction:
     def submit(self):
         for key in self.tx_json:
             if isinstance(self.tx_json[key], Exception):
-                return self.tx_json[key].message
+                return self.tx_json[key]
 
         data = {}
         if self.remote.local_sign:  # 签名之后传给底层
