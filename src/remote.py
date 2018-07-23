@@ -400,8 +400,13 @@ class Remote:
         }
 
     def parse_account_info(self, data):
+        if isinstance(data, dict) and data['callback']:
+            data = json.loads(data['callback'])
+            return {
+                'error': data['error'],
+                'msg': data['error_message']
+            }
         data = json.loads(data)
-        print(data)
         account_data = {
             'account_data': data['result']['account_data'],
             'ledger_index': data['result']['ledger_current_index']
