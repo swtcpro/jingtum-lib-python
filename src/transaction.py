@@ -147,9 +147,9 @@ class Transaction:
         _memo = {}
         _memo['MemoData'] = stringToHex(memo)
         if 'Memos' in self.tx_json:
-            self.tx_json['Memos']['MemoData'] = self.tx_json['Memos']['MemoData'] + _memo['MemoData']
+            self.tx_json['Memos'].append({'Memo': _memo})
         else:
-            self.tx_json['Memos'] = _memo
+            self.tx_json['Memos'] = [{'Memo': _memo}]
 
     def setFee(self, fee):
         _fee = safe_int(fee)

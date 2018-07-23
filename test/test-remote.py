@@ -15,15 +15,15 @@ class RemoteTest(unittest.TestCase):
         remote = Remote()
         if not isinstance(remote.connect(None), Exception):
             tx = remote.buildPaymentTx({
-                'account': 'jB7rxgh43ncbTX4WeMoeadiGMfmfqY2xLZ',
-                'to': 'jDUjqoDZLhzx4DCf6pvSivjkjgtRESY62c',
+                'account': 'j9fE48ebcvwnKSGnPdtN6jGNM9yVBMVaH8',
+                'to': 'jEmEWuLQXgtBaro86hScnBpjN3TgKSoQGD',
                 'amount': {
                     "value": 0.5,
                     "currency": "SWT",
                     "issuer": ""
                 }
             })
-            tx.setSecret('sn37nYrQ6KPJvTFmaBYokS3FjXUWd')
+            tx.setSecret('ssTkYQLLYiZs7Sosp12sB43TocUbd')
             tx.addMemo('给jDUjqoDZLhzx4DCf6pvSivjkjgtRESY62c支付0.5swt.')  # 可选
             tx.addMemo('123')
             s=tx.submit()
