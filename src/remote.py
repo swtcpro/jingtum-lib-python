@@ -19,7 +19,7 @@ from src import util
 from src.config import Config
 from src.request import Request
 from src.server import Server, WebSocketServer
-from src.transaction import RelationTypes
+from src.transaction import RelationTypes,AccountSetTypes,set_clear_flags,OfferTypes
 from src.transaction import Transaction
 from src.utils.cache import LRUCache
 from src.utils.utils import utils
@@ -36,11 +36,11 @@ LEDGER_OPTIONS = ['closed', 'header', 'current']
 
 
 def ToAmount(amount):
-    if (amount.__contains__('value') and int(amount['value']) > 100000000000):
+    if (amount.__contains__('value') and float(amount['value']) > 100000000000):
         return Exception('invalid amount: amount\'s maximum value is 100000000000')
     if (amount['currency'] == Config.currency):
         # return new String(parseInt(Number(amount.value) * 1000000.00))
-        return str(int(amount['value'] * 1000000.00))
+        return str(int(amount['value']) * 1000000)
     return amount
 
 class Remote:
@@ -514,7 +514,7 @@ class Remote:
         if not options:
             tx.tx_json['obj'] = ValueError('invalid options type')
             return tx
-        if not ~Transaction.AccountSetTypes.index(options['type']):
+        if not options['type'] in AccountSetTypes:
             tx.tx_json['type'] = ValueError('invalid account set type')
             return tx
         if options['type'] == 'property':
@@ -522,7 +522,7 @@ class Remote:
         elif options['type'] == 'delegate':
             return self.__buildDelegateKeySet(options, tx)
         elif options['type'] == 'signer':
-            return self.__buildSignerSet(options, tx)
+            return self.__buildSignerSet() #not implement yet
         tx.tx_json['msg'] = Warning('build account set should not go here')
         return tx
 
@@ -541,21 +541,26 @@ class Remote:
             clear_flag = options['clear_flag']
         elif options.__contains__('clear'):
             clear_flag = options['clear']
-        if not utils.isValidAmount():
-            pass
+        if not Wallet.isValidAddress(src):
+            tx.tx_json['src'] = Exception('invalid source address')
+            return tx;
+
         tx.tx_json['TransactionType'] = 'AccountSet'
         tx.tx_json['Account'] = src
-        SetClearFlags = Transaction.set_clear_flags.AccountSet
-        set_flag = self.__prebuildPaymentTxpareFlag(set_flag, SetClearFlags)
+
+        SetClearFlags = set_clear_flags['AccountSet']
+
+        set_flag = self.__prepareFlag(set_flag, SetClearFlags)
         if set_flag:
             tx.tx_json['SetFlag'] = set_flag
+
         clear_flag = self.__prepareFlag(clear_flag, SetClearFlags)
         if clear_flag:
             tx.tx_json['ClearFlag'] = clear_flag
         return tx
 
     def __prepareFlag(self, flag, SetClearFlags):
-        if isinstance(flag, int):
+        if isinstance(flag, (int,float)):
             flag = SetClearFlags[flag]
         else:
             flag = SetClearFlags['asf' + flag]
@@ -569,10 +574,11 @@ class Remote:
         elif options.__contains__('account'):
             src = options['account']
         delegate_key = options['delegate_key']
-        if not utils.isValidAddress(src):
+
+        if not Wallet.isValidAddress(src):
             tx.tx_json['delegate_key'] = Exception('invalid source address')
             return tx
-        if not utils.isValidAddress(delegate_key):
+        if not Wallet.isValidAddress(delegate_key):
             tx.tx_json['delegate_key'] = Exception('invalid regular key address')
             return tx
         tx.tx_json['TransactionType'] = 'SetRegularKey'
@@ -585,10 +591,11 @@ class Remote:
 
     # 挂单
     def buildOfferCreateTx(self, options):
-        tx = Transaction(self)
+        tx = Transaction(self, None)
         if not options:
             tx.tx_json['obj'] = TypeError('invalid options type')
             return tx
+
         offer_type = options['type']
         if options.__contains__('source'):
             src = options['source']
@@ -606,13 +613,13 @@ class Remote:
         elif options.__contains__('gets'):
             taker_pays = options['gets']
 
-        if not utils.isValidAddress(src):
+        if not Wallet.isValidAddress(src):
             tx.tx_json['src'] = Exception('invalid source address')
             return tx
-        if not isinstance(offer_type, str) or not ~Transaction.OfferTypes.indexOf(offer_type):
+        if not isinstance(offer_type, str) or not offer_type in OfferTypes:
             tx.tx_json['offer_type'] = TypeError('invalid offer type')
             return tx
-        taker_gets2, taker_pays2 = any
+
         if isinstance(taker_gets, str) and not int(taker_gets) and not float(taker_gets):
             tx.tx_json['taker_gets2'] = Exception('invalid to pays amount')
             return tx
@@ -625,12 +632,13 @@ class Remote:
         if not taker_pays and not utils.isValidAmount(taker_pays):
             tx.tx_json['taker_pays2'] = Exception('invalid to gets amount object')
             return tx
+
         tx.tx_json['TransactionType'] = 'OfferCreate'
         if offer_type is 'Sell':
             tx.setFlags(offer_type)
         tx.tx_json['Account'] = src
-        tx.tx_json['TakerPays'] = taker_pays2 if taker_pays2 else self.ToAmount(taker_pays)
-        tx.tx_json['TakerGets'] = taker_gets2 if taker_gets2 else self.ToAmount(taker_gets)
+        tx.tx_json['TakerPays'] = ToAmount(taker_pays)
+        tx.tx_json['TakerGets'] = ToAmount(taker_gets)
         return tx
 
     def ToAmount(self, amount):
@@ -643,7 +651,7 @@ class Remote:
 
     # 取消挂单
     def buildOfferCancelTx(self, options):
-        tx = Transaction(self)
+        tx = Transaction(self, None)
         if not options:
             tx.tx_json.obj = Exception('invalid options type')
             return tx
@@ -654,7 +662,7 @@ class Remote:
         elif options.__contains__('account'):
             src = options['account']
         sequence = options['sequence']
-        if not utils.isValidAddress(src):
+        if not Wallet.isValidAddress(src):
             tx.tx_json['src'] = Exception('invalid source address')
             return tx
         if not int(sequence) and not float(sequence):

@@ -19,7 +19,7 @@ set_clear_flags = {
     }
 }
 
-flags = {
+transaction_global_flags = {
     # Universal flags can apply to any transaction type
     'Universal': {
         'FullyCanonicalSig': 0x80000000
@@ -136,7 +136,6 @@ class Transaction:
     * just only memo data
     * @param memo
     """
-
     def addMemo(self, memo):
         if (not isinstance(memo, str)):
             self.tx_json['memo_type'] = TypeError('invalid memo type')
@@ -219,14 +218,19 @@ class Transaction:
             self.tx_json['Flags'] = flags
             return
 
-        transaction_flags = Transaction.flags[self.getTransactionType()] or {}
+        index = self.getTransactionType()
+        if flags.index:
+            transaction_flags = transaction_global_flags[index]
+        else:
+            transaction_flags = {}
+        #transaction_flags = flags[self.getTransactionType()] or {}
         if (isinstance(flags, list)):
             flag_set = flags
         else:
-            flag_set = [].append(flags)
+            flag_set = [flags]
 
         for flag in flag_set:
-            if (transaction_flags.has_key(flag)):
+            if transaction_flags.__contains__(flag):
                 self.tx_json['Flags'] += transaction_flags[flag]
 
     def sign(self):
