@@ -188,15 +188,8 @@ class Remote:
             # 'filter': filter,
             'callback': result['callback']
         }
-        if data['tx_json']['TransactionType'] == 'Payment':
-            parseresult = self.parse_payment(result['callback'])
-            return parseresult
-        else:
-            return result
+        return result
         #return result['callback']
-        #if tx.tx_json['TransactionType'] = 'Payment'
-
-        # callback()
 
     def subscribe(self, streams):
         request = Request(self, "subscribe", None)
@@ -382,10 +375,7 @@ class Remote:
         return self.request_account('account_offers', options, req)
 
     def parse_payment(self, data):
-        #print('input data is ',data)
         data = json.loads(data)
-        #print('resolve data is ', data)
-        #print('resolve finished')
         if data['status']=='success':
             return {
                 'engine_result': data['result']['engine_result'],

@@ -27,7 +27,8 @@ class RemoteTest(unittest.TestCase):
             tx.addMemo('给jDUjqoDZLhzx4DCf6pvSivjkjgtRESY62c支付0.5swt.')  # 可选
             tx.addMemo('123')
             s=tx.submit()
-            print('result is', s)
+            result=remote.parse_payment(s['callback'])
+            print('result is', result)
 
 if __name__ == '__main__':
     unittest.main()
