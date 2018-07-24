@@ -32,7 +32,7 @@ class RemoteTest(unittest.TestCase):
 
     def test_set_relation(self):
         remote = Remote()
-        optionstrust = {
+        options_trust = {
                 'type': 'trust',
                 'account': 'j9fE48ebcvwnKSGnPdtN6jGNM9yVBMVaH8',
                 'target': 'jEmEWuLQXgtBaro86hScnBpjN3TgKSoQGD',
@@ -42,7 +42,7 @@ class RemoteTest(unittest.TestCase):
                     "issuer": ""
                 }
         }
-        optionsauthorize = {
+        options_authorize = {
                 'type': 'authorize',
                 'account': 'j9fE48ebcvwnKSGnPdtN6jGNM9yVBMVaH8',
                 'target': 'jEmEWuLQXgtBaro86hScnBpjN3TgKSoQGD',
@@ -52,7 +52,7 @@ class RemoteTest(unittest.TestCase):
                     "issuer": ""
                 }
         }
-        optionsfreeze = {
+        options_freeze = {
             'type': 'freeze',
             'account': 'j9fE48ebcvwnKSGnPdtN6jGNM9yVBMVaH8',
             'target': 'jEmEWuLQXgtBaro86hScnBpjN3TgKSoQGD',
@@ -63,23 +63,61 @@ class RemoteTest(unittest.TestCase):
             }
         }
         if not isinstance(remote.connect(None), Exception):
-            tx = remote.buildRelationTx(optionstrust)
+            tx = remote.buildRelationTx(options_trust)
             tx.setSecret('ssTkYQLLYiZs7Sosp12sB43TocUbd')
             s=tx.submit()
             result=remote.parse_payment(s)
             print('trust result is', result)
 
-            tx = remote.buildRelationTx(optionstrust)
+            tx = remote.buildRelationTx(options_authorize)
             tx.setSecret('ssTkYQLLYiZs7Sosp12sB43TocUbd')
             s=tx.submit()
             result=remote.parse_payment(s)
             print('authorize result is', result)
 
-            tx = remote.buildRelationTx(optionstrust)
+            tx = remote.buildRelationTx(options_freeze)
             tx.setSecret('ssTkYQLLYiZs7Sosp12sB43TocUbd')
             s=tx.submit()
             result=remote.parse_payment(s)
             print('freeze result is', result)
+
+    def test_buildaccount(self):
+        remote = Remote()
+        options_property = {
+                'type': 'property',
+                'account': 'j9fE48ebcvwnKSGnPdtN6jGNM9yVBMVaH8',
+                'set_flag': '123'
+        }
+        options_delegate = {
+                'type': 'delegate',
+                'account': 'j9fE48ebcvwnKSGnPdtN6jGNM9yVBMVaH8',
+                'delegate_key': 'jEmEWuLQXgtBaro86hScnBpjN3TgKSoQGD',
+                'set_flag': '123'
+        }
+        options_signer = {
+            'type': 'signer',
+            'account': 'j9fE48ebcvwnKSGnPdtN6jGNM9yVBMVaH8'
+        }
+        if not isinstance(remote.connect(None), Exception):
+            tx = remote.buildAccountSetTx(options_property)
+            tx.setSecret('ssTkYQLLYiZs7Sosp12sB43TocUbd')
+            s=tx.submit()
+            result=remote.parse_payment(s)
+            print('buildAccountSetTx property result is', result)
+
+            tx = remote.buildAccountSetTx(options_delegate)
+            tx.setSecret('ssTkYQLLYiZs7Sosp12sB43TocUbd')
+            s=tx.submit()
+            result=remote.parse_payment(s)
+            print('buildAccountSetTx delegate result is', result)
+
+            '''
+            tx = remote.buildAccountSetTx(options_signer)
+            tx.setSecret('ssTkYQLLYiZs7Sosp12sB43TocUbd')
+            s=tx.submit()
+            result=remote.parse_payment(s)
+            print('freeze result is', result)
+            '''
 
 if __name__ == '__main__':
     unittest.main()
