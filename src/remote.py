@@ -43,7 +43,6 @@ def ToAmount(amount):
         return str(int(amount['value'] * 1000000.00))
     return amount
 
-
 class Remote:
     def __init__(self):
         # self.opts = options
@@ -375,21 +374,24 @@ class Remote:
         return self.request_account('account_offers', options, req)
 
     def parse_payment(self, data):
-        data = json.loads(data)
-        if data['status']=='success':
-            return {
-                'engine_result': data['result']['engine_result'],
-                'engine_result_code': data['result']['engine_result_code'],
-                'engine_result_message': data['result']['engine_result_message'],
-                'tx_blob': data['result']['tx_blob'],
-                'tx_json': data['result']['tx_json']
-            }
+        if isinstance(data, dict) and data['callback']:
+            data = json.loads(data['callback'])
+            if data['status']=='success':
+                return {
+                    'engine_result': data['result']['engine_result'],
+                    'engine_result_code': data['result']['engine_result_code'],
+                    'engine_result_message': data['result']['engine_result_message'],
+                    'tx_blob': data['result']['tx_blob'],
+                    'tx_json': data['result']['tx_json']
+                }
+            else:
+                return {
+                    'error': data['error'],
+                    'error_code': data['error_code'],
+                    'error_message': data['error_message']
+                }
         else:
-            return {
-                'error': data['error'],
-                'error_code': data['error_code'],
-                'error_message': data['error_message']
-            }
+            return data
 
     def parse_transaction(self, data):
         data = json.loads(data)
@@ -663,97 +665,90 @@ class Remote:
         tx.tx_json['OfferSequence'] = int(sequence)
         return tx
 
+    def __buildRelationSet(self, options, tx):
+        if options.__contains__('source'):
+            src = options['source']
+        elif options.__contains__('from'):
+            src = options['from']
+        elif options.__contains__('account'):
+            src = options['account']
 
-def __buildRelationSet(options, tx):
-    if options.__contains__('source'):
-        src = options['source']
-    elif options.__contains__('from'):
-        src = options['from']
-    elif options.__contains__('account'):
-        src = options['account']
+        des = options['target']
+        limit = options['limit']
 
-    des = options['target']
-    limit = options['limit']
+        if not Wallet.isValidAddress(src):
+            tx.tx_json['src'] = Exception('invalid source address')
+            return tx
+        if not Wallet.isValidAddress(des):
+            tx.tx_json['des'] = Exception('invalid target address')
+            return tx
+        if not utils.isValidAmount(limit):
+            tx.tx_json['limit'] = Exception('invalid amount')
+            return tx
 
-    if not Wallet.isValidAddress(src):
-        tx.tx_json['src'] = Exception('invalid source address')
-        return tx
-    if not Wallet.isValidAddress(des):
-        tx.tx_json['des'] = Exception('invalid target address')
-        return tx
-    if not utils.isValidAmount(limit):
-        tx.tx_json['limit'] = Exception('invalid amount')
-        return tx
-
-    if options['type'] == 'unfreeze':
-        tx.tx_json['TransactionType'] = 'RelationDel'
-    else:
-        tx.tx_json['TransactionType'] = 'RelationSet'
-    tx.tx_json['Account'] = src
-    tx.tx_json['Target'] = des
-    if options['type'] == 'authorize':
-        tx.tx_json['RelationType'] = '1'
-    else:
-        tx.tx_json['RelationType'] = '3'
-    if limit:
-        tx.tx_json['LimitAmount'] = limit
-    return tx
-
-
-def __buildTrustSet(options, tx):
-    if options.__contains__('source'):
-        src = options['source']
-    elif options.__contains__('from'):
-        src = options['from']
-    elif options.__contains__('account'):
-        src = options['account']
-    limit = options['limit']
-    quality_out = options['quality_out']
-    quality_in = options['quality_in']
-
-    if not Wallet.isValidAddress(src):
-        tx.tx_json['src'] = Exception('invalid source address')
-        return tx
-    if not utils.isValidAmount(limit):
-        tx.tx_json['limit'] = Exception('invalid amount')
+        if options['type'] == 'unfreeze':
+            tx.tx_json['TransactionType'] = 'RelationDel'
+        else:
+            tx.tx_json['TransactionType'] = 'RelationSet'
+        tx.tx_json['Account'] = src
+        tx.tx_json['Target'] = des
+        if options['type'] == 'authorize':
+            tx.tx_json['RelationType'] = '1'
+        else:
+            tx.tx_json['RelationType'] = '3'
+        if limit:
+            tx.tx_json['LimitAmount'] = limit
         return tx
 
-    tx.tx_json['TransactionType'] = 'TrustSet'
-    tx.tx_json['Account'] = src
-    if limit:
-        tx.tx_json['LimitAmount'] = limit
-    if quality_in:
-        tx.tx_json['QualityIn'] = quality_in
-    if quality_out:
-        tx.tx_json['QualityOut'] = quality_out
-    return tx
+    def __buildTrustSet(self, options, tx):
+        if options.__contains__('source'):
+            src = options['source']
+        elif options.__contains__('from'):
+            src = options['from']
+        elif options.__contains__('account'):
+            src = options['account']
+        limit = options['limit']
+        if options.__contains__('quality_out'):
+            tx.tx_json['QualityIn'] = options['quality_out']
+        if options.__contains__('quality_in'):
+            tx.tx_json['QualityOut'] = options['quality_in']
 
+        if not Wallet.isValidAddress(src):
+            tx.tx_json['src'] = Exception('invalid source address')
+            return tx
+        if not utils.isValidAmount(limit):
+            tx.tx_json['limit'] = Exception('invalid amount')
+            return tx
 
-"""
- * add wallet relation set
- * @param options
- *    type: Transaction.RelationTypes
- *    source|from|account source account, required
- *    limit limt amount, required
- *    quality_out, optional
- *    quality_in, optional
- * @returns {Transaction}
- * 创建关系对象
-"""
-
-
-def buildRelationTx(self, options):
-    tx = Transaction(self)
-    if not options:
-        tx.tx_json['obj'] = Exception('invalid options type')
+        tx.tx_json['TransactionType'] = 'TrustSet'
+        tx.tx_json['Account'] = src
+        if limit:
+            tx.tx_json['LimitAmount'] = limit
         return tx
-    if not ~Transaction.RelationTypes.index(options.type):
-        tx.tx_json['type'] = Exception('invalid relation type')
+
+    """
+     * add wallet relation set
+     * @param options
+     *    type: Transaction.RelationTypes
+     *    source|from|account source account, required
+     *    limit limt amount, required
+     *    quality_out, optional
+     *    quality_in, optional
+     * @returns {Transaction}
+     * 创建关系对象
+    """
+    def buildRelationTx(self, options):
+        tx = Transaction(self, None)
+        if not options:
+            tx.tx_json['obj'] = Exception('invalid options type')
+            return tx
+        if not options['type'] in RelationTypes:
+            tx.tx_json['type'] = Exception('invalid relation type')
+            return tx
+        if options['type'] == 'trust':
+            return self.__buildTrustSet(options, tx)
+        elif options['type'] == 'authorize' or \
+                options['type'] == 'freeze' or options['type'] == 'unfreeze':
+            return self.__buildRelationSet(options, tx)
+        tx.tx_json['msg'] = Exception('build relation set should not go here')
         return tx
-    if options['type'] == 'trust':
-        return self.__buildTrustSet(options, tx)
-    elif options['type'] == 'authorize' or \
-            options['type'] == 'freeze' or options['type'] == 'unfreeze':
-        return self.__buildRelationSet(options, tx)
-    tx.tx_json['msg'] = Exception('build relation set should not go here')
-    return tx
