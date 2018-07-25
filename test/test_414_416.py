@@ -12,7 +12,7 @@ from src.remote import Remote
 
 class RemoteTest(unittest.TestCase):
     def test_create_pay_object(self):
-        remote = Remote()
+        remote = Remote(local_sign=True)
         if not isinstance(remote.connect(None), Exception):
             tx = remote.buildPaymentTx({
                 'account': 'j9fE48ebcvwnKSGnPdtN6jGNM9yVBMVaH8',
@@ -25,7 +25,7 @@ class RemoteTest(unittest.TestCase):
             })
             tx.setSecret('ssTkYQLLYiZs7Sosp12sB43TocUbd')
             tx.addMemo('给jDUjqoDZLhzx4DCf6pvSivjkjgtRESY62c支付0.5swt.')  # 可选
-            tx.addMemo('123')
+            #tx.addMemo('123')
             s=tx.submit()
             result=remote.parse_payment(s)
             print('test_create_pay_object result is', result)
