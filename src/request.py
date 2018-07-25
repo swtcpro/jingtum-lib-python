@@ -9,6 +9,7 @@
 
 from eventemitter import EventEmitter
 from src.utils.utils import *
+import json
 
 
 class Request:
@@ -34,12 +35,32 @@ class Request:
         :param ledger:  账本的Index或者hash
         :return: Request对象
         """
-        if isinstance(ledger, str) and LEDGER_STATES.index(ledger):
+        if isinstance(ledger, str) and ledger in LEDGER_STATES:
             self.message['ledger_index'] = ledger
-        elif isinstance(ledger, str) and is_number(ledger):
+        elif is_number(ledger):
             self.message['ledger_index'] = ledger
-        elif re.match('^[A-F0-9]+$', ledger) is not None:
+        elif re.search('^[A-F0-9]+$', ledger):
             self.message['ledger_index'] = ledger
         else:
             self.message['ledger_index'] = 'validated'
         return self
+
+    def parse_ledger(self, data):
+        if isinstance(data, dict) and data['callback']:
+            data = json.loads(data['callback'])
+            if data['status']=='success':
+                return {
+                    'account_data': data['result']['account_data'],
+                    'ledger_hash': data['result']['ledger_hash'],
+                    'ledger_index': data['result']['ledger_index'],
+                    'validated': data['result']['validated']
+                }
+            else:
+                return {
+                    'error': data['error'],
+                    'error_code': data['error_code'],
+                    'error_message': data['error_message']
+                }
+        else:
+            return data
+
