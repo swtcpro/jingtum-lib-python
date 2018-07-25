@@ -5,6 +5,7 @@ import math
 from src.config import Config
 from src.util import *
 from src.utils.utils import is_number, utils
+from jingtum_python_baselib.utils import *
 
 fee = Config.FEE or 10000
 
@@ -144,7 +145,7 @@ class Transaction:
             self.tx_json['memo_len'] = TypeError('memo is too long')
             return self
         _memo = {}
-        _memo['MemoData'] = stringToHex(memo)
+        _memo['MemoData'] = bytesToHex(memo.encode('utf8')).lower()
         if 'Memos' in self.tx_json:
             self.tx_json['Memos'].append({'Memo': _memo})
         else:
@@ -234,45 +235,51 @@ class Transaction:
                 self.tx_json['Flags'] += transaction_flags[flag]
 
     def sign(self):
-        if self.tx_json['Sequence']:
+        if self.tx_json.__contains__('Sequence'):
             self.signing()
         else:
-            req = self.remote.requestAccountInfo({'account': self.tx_json.Account, 'type': 'trust'})
-            #self.tx_json['Sequence'] = data.account_data['Sequence']
-            req.submit(self.signing())
+            req = self.remote.request_account_info({'account': self.tx_json['Account'], 'type': 'trust'})
+            #self.tx_json['Sequence'] = self.account_data['Sequence'] TODO
+            req.submit()
+            self.signing()
 
     def signing(self):
         from jingtum_python_baselib.Serializer import Serializer
         #if (err is not None):
         #    return callback(err)
-        #self.tx_json['Sequence'] = data.account_data.Sequence
+        #self.tx_json['Sequence'] = data.account_data.Sequence TODO
         self.tx_json['Fee'] = self.tx_json['Fee'] / 1000000
 
         # payment
-        if (self.tx_json.Amount and json.dumps(self.tx_json.Amount).index('{') < 0):
+        if (self.tx_json.__contains__('Amount') and '{' not in json.dumps(self.tx_json['Amount'])):
             # 基础货币
-            self.tx_json.Amount = Number(self.tx_json.Amount) / 1000000
+            self.tx_json['Amount'] = Number(self.tx_json['Amount']) / 1000000
 
-        if (self.tx_json['Memos'] is not None):
+        if self.tx_json.__contains__('Memos'):
             memo_list = self.tx_json['Memos']
-            memo_list[0]["Memo"]["MemoData"] = hexToString(memo_list[0]["Memo"]["MemoData"]).decode('UTF-8')
+            i = 0
+            while i < len(memo_list):
+                #memo_list[i]["Memo"]["MemoData"] = hexToString(memo_list[i]["Memo"]["MemoData"]).decode(encoding='UTF-8')
+                memo_list[i]["Memo"]["MemoData"] = hexToString(memo_list[i]["Memo"]["MemoData"])
+                i += 1
 
-        if (self.tx_json['SendMax'] is not None and isinstance(self.tx_json['SendMax'], str)):
+        if (self.tx_json.__contains__('SendMax') and isinstance(self.tx_json['SendMax'], str)):
             self.tx_json['SendMax'] = Number(self.tx_json['SendMax']) / 1000000
 
         # order
-        if (self.tx_json['TakerPays'] and json.dumps(self.tx_json['TakerPays']).index('{') < 0):
+        if (self.tx_json.__contains__('TakerPays') and '{' not in json.dumps(self.tx_json['TakerPays'])):
             # 基础货币
             self.tx_json['TakerPays'] = Number(self.tx_json['TakerPays']) / 1000000
 
-        if (self.tx_json['TakerGets'] and json.dumps(self.tx_json['TakerGets']).index('{') < 0):
+        if (self.tx_json.__contains__('TakerGets') and '{' not in json.dumps(self.tx_json['TakerGets'])):
             # 基础货币
             self.tx_json['TakerGets'] = Number(self.tx_json['TakerGets']) / 1000000
 
         wt = Wallet(self._secret)
         self.tx_json['SigningPubKey'] = wt.getPublicKey()
         prefix = 0x53545800
-        hash = Serializer.from_json(self.tx_json).hash(prefix)
+        serial = Serializer(None)
+        hash = serial.from_json(self.tx_json).hash(prefix)
         self.tx_json['TxnSignature'] = wt.sign(hash)
         self.tx_json['blob'] =  Serializer.from_json(self.tx_json).to_hex()
         self.local_sign = True
@@ -310,16 +317,15 @@ class Transaction:
 
         data = {}
         if self.remote.local_sign:  # 签名之后传给底层
-            self.submitblob()
+            #self.submitblob() TODO
             self.sign()
         elif self.tx_json['TransactionType'] == 'Signer':  # 直接将blob传给底层
             data = {
                 "tx_blob": self.tx_json['blob']
             }
-            self.remote.submit(self, 'submit', data)
         else:  # 不签名交易传给底层
             data = {
                 "secret": self._secret,
                 "tx_json": self.tx_json
             }
-            return self.remote.submit('submit', data)
+        return self.remote.submit('submit', data)
