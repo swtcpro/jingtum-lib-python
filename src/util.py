@@ -49,8 +49,9 @@ def hexToString(h):
         i = 1
 
     for index in range(i, strLength, 2):
-        a.extend(chr(int(h[index: index + 2]), 16))
+        a.extend(chr(int(h[index: index + 2], 16)))
 
+    print('hexToString result is', a)
     return ''.join(a)
 
 
