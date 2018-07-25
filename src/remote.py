@@ -36,11 +36,11 @@ LEDGER_OPTIONS = ['closed', 'header', 'current']
 
 
 def ToAmount(amount):
-    if (amount.__contains__('value') and float(amount['value']) > 100000000000):
+    if (amount.__contains__('value') and int(float(amount['value'])) > 100000000000):
         return Exception('invalid amount: amount\'s maximum value is 100000000000')
     if (amount['currency'] == Config.currency):
         # return new String(parseInt(Number(amount.value) * 1000000.00))
-        return str(int(amount['value']) * 1000000)
+        return str(int(float(amount['value']) * 1000000))
     return amount
 
 class Remote:
@@ -608,6 +608,7 @@ class Remote:
             taker_gets = options['taker_gets']
         elif options.__contains__('pays'):
             taker_gets = options['pays']
+
         if options.__contains__('taker_pays'):
             taker_pays = options['taker_pays']
         elif options.__contains__('gets'):
@@ -640,14 +641,6 @@ class Remote:
         tx.tx_json['TakerPays'] = ToAmount(taker_pays)
         tx.tx_json['TakerGets'] = ToAmount(taker_gets)
         return tx
-
-    def ToAmount(self, amount):
-        if (amount.value and int(amount.value) > 100000000000):
-            return Exception('invalid amount: amount\'s maximum value is 100000000000')
-        if amount.currency is Config.currency:
-            # 这段需要修改
-            return str(int(amount.value).mul(1000000.00))
-        return amount
 
     # 取消挂单
     def buildOfferCancelTx(self, options):
