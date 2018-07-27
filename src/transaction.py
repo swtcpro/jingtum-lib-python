@@ -281,7 +281,7 @@ class Transaction:
         serial = Serializer(None)
         hash = serial.from_json(self.tx_json).hash(prefix)
         self.tx_json['TxnSignature'] = wt.sign(hash)
-        self.tx_json['blob'] =  Serializer.from_json(self.tx_json).to_hex()
+        self.tx_json['blob'] =  serial.from_json(self.tx_json).to_hex()
         self.local_sign = True
         return self.tx_json['blob']
 
