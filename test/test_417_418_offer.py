@@ -13,7 +13,7 @@ from src.remote import Remote
 
 class OfferTest(unittest.TestCase):
     def test_build_offer_create(self):
-        remote = Remote()
+        remote = Remote(local_sign=True)
         options = {
             'type': 'Sell',
             'account': 'jB7rxgh43ncbTX4WeMoeadiGMfmfqY2xLZ',
@@ -37,7 +37,7 @@ class OfferTest(unittest.TestCase):
             print('test_build_offer_create result is', result)
 
     def test_build_offer_cancel(self):
-        remote = Remote()
+        remote = Remote(local_sign=True)
         options = {
             'sequence': 1777,
             'account': 'jB7rxgh43ncbTX4WeMoeadiGMfmfqY2xLZ',
