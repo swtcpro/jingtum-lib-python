@@ -5,18 +5,10 @@
  * Time: 11:25
  * Description: Ç®°üÄ£¿é
 """
-import hashlib
 from jingtum_python_baselib.keypairs import *
 
-
-#import sys
-#sys.path.append("..")
-
-def hash(message):
-    return hashlib.sha512().update(message).digest()[0:32]
-
 class Wallet:
-    def __init__(self, secret):
+    def __init__(self, secret=None):
         try:
             self.keypairs = root_key_from_seed(parse_seed(secret))
             self.secret = secret
@@ -30,11 +22,11 @@ class Wallet:
      * @returns {{secret: string, address: string}}
     """
     @staticmethod
-    def generate():
-        secret = get_secret()
-        keypairs = root_key_from_seed(parse_seed(secret))
-        address = get_jingtum_from_key(keypairs)
-        return {'secret': secret, 'address': address}
+    def generate(self):
+        self.secret = get_secret()
+        self.keypairs = root_key_from_seed(parse_seed(self.secret))
+        address = get_jingtum_from_key(self.keypairs)
+        return {'secret': self.secret, 'address': address}
 
     """
      * static function
@@ -42,11 +34,12 @@ class Wallet:
      * @param secret
      * @returns {*}
     """
-    @staticmethod
-    def fromSecret(secret):
+    #@staticmethod
+    def fromSecret(self, secret):
         try:
-            keypairs = root_key_from_seed(parse_seed(secret))
-            address = get_jingtum_from_key(keypairs)
+            self.keypairs = root_key_from_seed(parse_seed(secret))
+            self.secret = secret
+            address = get_jingtum_from_key(self.keypairs)
             return {'secret': secret, 'address': address}
         except Exception:
             return None
@@ -80,20 +73,6 @@ class Wallet:
             return False
 
     """
-     * static function
-     * check if secret is valid
-     * @param secret
-     * @returns {boolean}
-    """
-    @staticmethod
-    def isValidSecret(secret):
-        try:
-            parse_seed(secret)
-            return True
-        except Exception:
-            return False
-
-    """
      * sign message with wallet privatekey
      * Export DER encoded signature in Array
      * @param message
@@ -102,10 +81,11 @@ class Wallet:
     def sign(self, message):
         if not message or len(message) == 0:
             return None
-        if not self.key:
+        if not self.keypairs:
             return None
             # Verify a correct signature is created (uses a fixed k value):
-        result = jingtum_sign(self.key, message.encode())
+        #result = jingtum_sign(self.keypairs, message.encode()) original py,has issue
+        result = jingtum_sign(self.keypairs, message).decode()
         return result
 
     """
@@ -124,7 +104,7 @@ class Wallet:
      * not finish yet
     """
     def secret(self):
-        if not self.keypairs:
+        if not self.secret:
             return None
         return self.secret
 

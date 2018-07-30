@@ -202,4 +202,4 @@ def ecdsa_make_canonical(r, s):
     return r, s
 
 def jingtum_sign(key, message):
-    return hexlify(ecdsa_sign(key, fmt_hex(sha256(message)), k=3))
+    return hexlify(ecdsa_sign(key, message, k=3))
