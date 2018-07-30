@@ -44,16 +44,15 @@ def hexToString(h):
     i = 0
     strLength = len(h)
 
-    if strLength % 2 == 0:
+    if strLength % 2:
         a.extend(chr(int(h[0: 1], 16)))
         i = 1
 
     for index in range(i, strLength, 2):
         a.extend(chr(int(h[index: index + 2], 16)))
 
-    print('hexToString result is', a)
+    #print('hexToString result is', a)
     return ''.join(a)
-
 
 def stringToHex(s):
     result = ''
@@ -67,6 +66,7 @@ def stringToHex(s):
 
     return result
 
+#print(bytes(hexToString('e7bb996a44556a716f445a4c687a78344443663670765369766a6b6a677452455359363263e694afe4bb98302e357377742e')).decode('utf8'))
 
 def is_valid_address(account):
     """
