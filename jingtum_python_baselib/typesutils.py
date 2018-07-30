@@ -495,10 +495,10 @@ class SerializedType:
 
 # Input:  HEX data in string format
 # Output: byte array
-def serializeHex(so, hexData, noLength):
+def serializeHex(so, hexData, noLength=None):
     byteData = hexToBytes(hexData) #bytes.fromBits(hex.toBits(hexData))
     if not noLength:
-        SerializedType.serialize_varint(so, byteData.length)
+        SerializedType.serialize_varint(so, len(byteData))
     so.append(byteData)
 
 # used by Amount serialize
@@ -540,8 +540,8 @@ class STInt64(SerializedType):
             if (val < 0):
                 raise Exception('Negative value for unsigned Int64 is invalid.')
             #bigNumObject = new BigInteger(String(val), 10)
-            bn = BN(val, 10)
-            big_num_in_hex_str = bn.toString(16)
+            bn = val
+            big_num_in_hex_str = hex(bn).replace('0x', '')
             # a = new BN('dead', 16)
             # b = new BN('101010', 2)
         elif isinstance(val,str):
@@ -763,7 +763,7 @@ class STVector256(SerializedType):
             i += 1
 
 class STMemo(SerializedType):
-    def serialize(so, val, no_marker):
+    def serialize(so, val, no_marker=None):
         keys = []
 
         for key in val:
@@ -776,13 +776,13 @@ class STMemo(SerializedType):
             if not INVERSE_FIELDS_MAP.__contains__(key):
                 raise Exception('JSON contains unknown field: "' + key + '"')
 
-            keys.push(key)
+            keys.append(key)
 
             # Sort fields
             keys = sort_fields(keys)
 
             # store that we're dealing with json
-            isJson = (val.MemoFormat == 'json')
+            isJson = (val.__contains__('MemoFormat') and val.MemoFormat == 'json')
 
             i = 0
             while i < len(keys):
@@ -848,12 +848,16 @@ def serialize(so, field_name, value):
     # Get the serializer class (ST...)
     if field_name == 'Memo' and isinstance(value,object):
         # for Memo we override the default behavior with our STMemo serializer
-        serialized_object_type = STMemo
+        serialized_object_type = 'STMemo'
     else:
         # for a field based on the type bits.
         serialized_object_type = 'ST'+ TYPES_MAP[type_bits]
 
     try:
+        #print('so.buffer is', so.buffer)
+        #print('value is', value)
+        #print('field_name is', field_name)
+        #print('call serialized_object_type',serialized_object_type)
         globals().get(serialized_object_type).serialize(so, value)
     except Exception:
         Exception(' (' + field_name + ')')
@@ -900,7 +904,7 @@ def Partition(arr, firstIndex, lastIndex):
     i = firstIndex - 1
     for j in range(firstIndex, lastIndex):
         #if arr[j] <= arr[lastIndex]:
-        if sort_field_compare(arr[j],arr[lastIndex]):
+        if (sort_field_compare(arr[j],arr[lastIndex])<0):
             i = i + 1
             arr[i], arr[j] = arr[j], arr[i]
     arr[i + 1], arr[lastIndex] = arr[lastIndex], arr[i + 1]
@@ -925,5 +929,6 @@ def sort_field_compare(a, b):
 def sort_fields(keys):
     #for key in keys:
     #    if(sort_field_compare
-    result= QuickSort(keys, 0, len(keys) - 1)
+    QuickSort(keys, 0, len(keys) - 1)
     return keys
+
