@@ -14,7 +14,8 @@ def bytesToHex(srcinfo):
     return ''.join(["%02X" % x for x in srcinfo]).strip()
 
 def hexToBytes(srcinfo):
-    assert (len(srcinfo) % 2 == 0)
+    if (len(srcinfo) % 2 != 0):
+        srcinfo = srcinfo + '0'
     # return BN(srcinfo, 16).toArray(null, len(srcinfo) / 2)
     i = 0
     dst = []
