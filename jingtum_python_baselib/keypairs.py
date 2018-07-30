@@ -25,6 +25,12 @@ def hash256(data):
     one256 = unhexlify(hashlib.sha256(data).hexdigest())
     return hashlib.sha256(one256).hexdigest()
 
+def hash512(data):
+    """
+        operation once
+    """
+    return unhexlify(hashlib.sha512(data).hexdigest())
+
 def sha256(bytes):
     hash = hashlib.sha256()
     hash.update(bytes)
