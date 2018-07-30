@@ -6,6 +6,7 @@ from src.config import Config
 from src.util import *
 from src.utils.utils import is_number, utils
 from jingtum_python_baselib.utils import *
+from jingtum_python_baselib.wallet import Wallet
 
 fee = Config.FEE or 10000
 
@@ -118,7 +119,7 @@ class Transaction:
         self.remote = remote
         self.tx_json = {"Flags": 0, "Fee": fee}
         self._filter = filter or filterFun
-        self._secret = 0
+        self._secret = None
 
     def parseJson(self, val):
         self.tx_json = val
@@ -131,6 +132,9 @@ class Transaction:
         return self.tx_json['TransactionType']
 
     def setSecret(self, secret):
+        if not Wallet.isValidSecret(secret):
+            self.tx_json._secret = Exception('valid secret')
+            return
         self._secret = secret
 
     """
@@ -168,7 +172,6 @@ class Transaction:
     * when path set, sendmax is also set.
     * @param path
     """
-
     def setPath(self, key):
         # sha1 string
         if (not isinstance(key, str) and len(key) != 40):
@@ -189,7 +192,6 @@ class Transaction:
     * limit send max amount
     * @param amount
     """
-
     def setSendMax(self, amount):
         if (utils.isValidAmount(amount) is not None):
             return Exception('invalid send max amount')
@@ -210,12 +212,11 @@ class Transaction:
     * set transaction flags
     *
      """
-
     def setFlags(self, flags):
         if (flags is None):
             return
 
-        if (isinstance(flags, (int, float))):
+        if isinstance(flags, (int, float)):
             self.tx_json['Flags'] = flags
             return
 
@@ -239,15 +240,13 @@ class Transaction:
             self.signing()
         else:
             req = self.remote.request_account_info({'account': self.tx_json['Account'], 'type': 'trust'})
-            #self.tx_json['Sequence'] = self.account_data['Sequence'] TODO
-            req.submit()
+            result=req.submit()
+            data = json.loads(result['callback'])
+            self.tx_json['Sequence'] = data['result']['account_data']['Sequence']
             self.signing()
 
     def signing(self):
         from jingtum_python_baselib.Serializer import Serializer
-        #if (err is not None):
-        #    return callback(err)
-        #self.tx_json['Sequence'] = data.account_data.Sequence TODO
         self.tx_json['Fee'] = self.tx_json['Fee'] / 1000000
 
         # payment
@@ -260,6 +259,7 @@ class Transaction:
             i = 0
             while i < len(memo_list):
                 #memo_list[i]["Memo"]["MemoData"] = hexToString(memo_list[i]["Memo"]["MemoData"]).decode(encoding='UTF-8')
+                #memo_list[i]["Memo"]["MemoData"] = hexToString(memo_list[i]["Memo"]["MemoData"]).decode()
                 memo_list[i]["Memo"]["MemoData"] = hexToString(memo_list[i]["Memo"]["MemoData"])
                 i += 1
 
@@ -281,7 +281,7 @@ class Transaction:
         serial = Serializer(None)
         hash = serial.from_json(self.tx_json).hash(prefix)
         self.tx_json['TxnSignature'] = wt.sign(hash)
-        self.tx_json['blob'] =  serial.from_json(self.tx_json).to_hex()
+        self.tx_json['blob'] = serial.from_json(self.tx_json).to_hex()
         self.local_sign = True
         return self.tx_json['blob']
 
@@ -291,24 +291,8 @@ class Transaction:
      * @param secret
      * 传入密钥
     """
-
     def setSecret(self, secret):
         self._secret = secret
-
-    """
-     * submit request to server
-     * @param callback
-     * 提交支付
-    """
-
-    def submitblob(self):
-        #if Exception:
-        #    raise Exception('sign error: ')
-        #else:
-        data = {
-            'tx_blob': self.tx_json['blob']
-        }
-        self.remote.submit('submit', data)
 
     def submit(self):
         for key in self.tx_json:
@@ -317,8 +301,10 @@ class Transaction:
 
         data = {}
         if self.remote.local_sign:  # 签名之后传给底层
-            #self.submitblob() TODO
             self.sign()
+            data = {
+                'tx_blob': self.tx_json['blob']
+            }
         elif self.tx_json['TransactionType'] == 'Signer':  # 直接将blob传给底层
             data = {
                 "tx_blob": self.tx_json['blob']
