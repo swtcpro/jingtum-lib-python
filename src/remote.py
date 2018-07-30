@@ -385,11 +385,7 @@ class Remote:
                     'tx_json': data['result']['tx_json']
                 }
             else:
-                return {
-                    'error': data['error'],
-                    'error_code': data['error_code'],
-                    'error_message': data['error_message']
-                }
+                return data
         else:
             return data
 
