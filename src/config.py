@@ -41,7 +41,7 @@ class Config(object):
         sdk_web_socket_address = config["prod"]["web_socket_address"]
         sdk_api_version = config["prod"]["api_version"]
         ttong_address = config["prod"]["ttong_address"]
-
+        ACCOUNT_ONE= config["constant"]["ACCOUNT_ONE"]
         test_api_address = config["dev"]["api_address"]
         test_web_socket_address = config["dev"]["web_socket_address"]
         test_api_version = config["dev"]["api_version"]

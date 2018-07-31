@@ -413,6 +413,28 @@ class Remote:
             'state': data['result']['info']['server_state']
         }
 
+    def parse_AccountTx_info(self, data):
+        if isinstance(data, dict) and data['callback']:
+            data = json.loads(data['callback'])
+            if data['status'] == 'success':
+                return {
+                    'account': data['result']['account'],
+                    'ledger_index_max': data['result']['ledger_index_max'],
+                    'ledger_index_min': data['result']['ledger_index_min']
+                }
+            else:
+                return {
+                    'error': data['error']
+                }
+        else:
+            return data
+    def parse_OrderBook_info(self, data):
+        data = json.loads(data['callback'])
+        return {
+            'ledger_current_index': data['result']['ledger_current_index'],
+            'offers': data['result']['offers']
+        }
+
     def parse_account_info(self, data):
         if isinstance(data, dict) and data['callback']:
             data = json.loads(data['callback'])
@@ -749,3 +771,84 @@ class Remote:
             return self.__buildRelationSet(options, tx)
         tx.tx_json['msg'] = Exception('build relation set should not go here')
         return tx
+
+    ##获得账号交易列表
+    def requestAccountTx(self, options):
+        data=[]
+        request = Request(self, 'account_tx', None)
+        if not isinstance(options, object):
+            request.message['type'] = Exception('invalid options type')
+            return request
+
+        if not Wallet.isValidAddress(options['account']):
+            request.message['account'] = Exception('account parameter is invalid')
+            return request
+
+        request.message['account'] = options['account']
+
+        if options.__contains__('ledger_min') and Number(options['ledger_min']):
+            request.message['ledger_index_min'] = Number(options['ledger_min'])
+        else:
+            request.message['ledger_index_min'] = 0
+        if options.__contains__('ledger_max') and Number(options['ledger_max']):
+            request.message['ledger_index_max'] = Number(options['ledger_max'])
+        else:
+            request.message['ledger_index_max'] = -1
+
+        if options.__contains__('limit') and Number(options['limit']):
+            request.message['limit'] = Number(options['limit'])
+
+        if options.__contains__('offset') and Number(options['offset']):
+            request.message['offset'] = Number(options['offset'])
+
+        if options.__contains__('marker') and isinstance(options['marker'], 'object') and Number(options.marker['ledger']) != None and Number(
+                options['marker']['seq']) != None:
+            request.message['marker'] = options['marker']
+
+        if options.__contains__('forward') and isinstance(options['forward'], 'boolean'):
+            request.message['forward'] = options['forward']
+
+        return request
+
+
+    ##获得市场挂单列表
+    def requestOrderBook(self,options):
+        request = Request(self, 'book_offers',None)
+        if not isinstance(options,object):
+            request.message['type'] = Exception('invalid options type')
+            return request
+
+        # taker_gets = options['taker_gets'] or options['pays']
+        if options.__contains__('taker_gets'):
+            taker_gets = options['taker_gets']
+        elif options.__contains__('pays'):
+            taker_gets=options['pays']
+        if not utils.isValidAmount0(taker_gets):
+            request.message.taker_gets = Exception('invalid taker gets amount')
+            return request
+
+        # taker_pays = options['taker_pays'] or options['gets']
+        if options.__contains__('taker_pays'):
+            taker_pays = options['taker_pays']
+        elif options.__contains__('gets'):
+            taker_pays = options['gets']
+        if not utils.isValidAmount0(taker_pays):
+            request.message.taker_pays = Exception('invalid taker pays amount')
+            return request
+
+        if options.__contains__('limit'):
+            if isinstance(options['limit'],int):
+                options['limit'] = int(options['limit'])
+
+        request.message['taker_gets'] = taker_gets
+        request.message['taker_pays'] = taker_pays
+        if options.__contains__('taker'):
+            request.message['taker'] = options['taker']
+        else:
+            request.message['taker'] = Config.ACCOUNT_ONE
+        # request.message['taker'] = options['taker'] if options['taker'] else utils['ACCOUNT_ONE']
+        if options.__contains__('limit'):
+            request.message['limit'] = options['limit']
+        return request
+
+
