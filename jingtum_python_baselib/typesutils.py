@@ -473,8 +473,29 @@ def get_transaction_type(structure):
     print('Get tx type:', output)
     return output
 
+"""
+/*
+ * input: UTF8 coding string 
+ * output: HEX code
+*/
+function convertStringToHex(in_str) {
+    var str = unescape(encodeURIComponent(in_str));
+    var out_str = "", i, tmp = 0;
+    for (i = 0; i < str.length; i++) {
+        out_str += (" 00" + Number(str.charCodeAt(i)).toString(16)).substr(-2);
+    }
+    return out_str.toUpperCase();//hex.fromBits(utf8.toBits(in_str)).toUpperCase());
+}
+"""
 def convertStringToHex(inputstr):
-    result = fmt_hex(bytearray(inputstr.encode()))
+    #result = fmt_hex(bytearray(inputstr.encode()))
+
+    out_str = ""
+    i = 0
+    while i < len(str):
+        out_str += (" 00" + str(int(ord(str[i]))))
+        i += 1
+    return out_str.upper() #hex.fromBits(utf8.toBits(in_str)).toUpperCase());
     return result
 
 class SerializedType:
@@ -791,7 +812,6 @@ class STMemo(SerializedType):
                 if key == 'MemoType' or key == 'MemoFormat':
                     # MemoType and MemoFormat are always ASCII strings
                     value = convertStringToHex(value)
-                    break
                     # MemoData can be a JSON object, otherwise it's a string
                 elif key == 'MemoData':
                     if not isinstance(value,str):
@@ -804,10 +824,8 @@ class STMemo(SerializedType):
                             raise Exception('MemoData can only be a JSON object with a valid json MemoFormat')
                     elif isinstance(value,str):
                         value = convertStringToHex(value)
-                    break
-                i += 1
-
                 serialize(so, key, value)
+                i += 1
 
             if (not no_marker):
                 #Object ending marker
