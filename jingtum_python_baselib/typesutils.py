@@ -951,7 +951,5 @@ def sort_field_compare(a, b):
         return a_field_bits - b_field_bits
 
 def sort_fields(keys):
-    #for key in keys:
-    #    if(sort_field_compare
     QuickSort(keys, 0, len(keys) - 1)
     return keys
