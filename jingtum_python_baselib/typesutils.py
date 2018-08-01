@@ -1,5 +1,5 @@
 import math,json,re
-from jingtum_python_baselib.utils import fmt_hex,hexToBytes
+from jingtum_python_baselib.utils import fmt_hex,hexToBytes,to_bytes
 from jingtum_python_baselib.keypairs import decodeAddress
 from jingtum_python_baselib.tum_amount import Amount
 
@@ -496,7 +496,6 @@ def convertStringToHex(inputstr):
         out_str += (" 00" + str(int(ord(str[i]))))
         i += 1
     return out_str.upper() #hex.fromBits(utf8.toBits(in_str)).toUpperCase());
-    return result
 
 class SerializedType:
     def serialize_varint(so, val):
@@ -602,6 +601,7 @@ class STCurrency:
 
 class STAmount:
     def serialize(so, val):
+        """"""
         amount = Amount.from_json(val)
 
         if (not amount.is_valid()):
@@ -615,6 +615,7 @@ class STAmount:
         if amount.is_native():
             bn = amount._value
             valueHex = hex(bn).replace('0x', '')
+            #print('valueHex is ',valueHex)
 
             # Enforce correct length (64 bits)
             if len(valueHex) > 16:
@@ -646,16 +647,21 @@ class STAmount:
             # First bit: non - native
             hi |= 1 << 31
 
+            #print('amount._value is',amount._value)
+            #print('amount._offset is', amount._offset)
             if (not amount.is_zero()):
                 # Second bit: non - negative?
                 if (not amount.is_negative()):
                     hi |= 1 << 30
 
+                #print('amount._offset is',amount._offset)
+                #print('amount._value is', amount._value)
+
                 # Next eight bits: offset / exponent
                 hi |= ((97 + amount._offset) & 0xff) << 22
                 # Remaining 54 bits: mantissa
-                hi |= amount._value.shrn(32).toNumber() & 0x3fffff
-                lo = amount._value.toNumber() & 0xffffffff
+                hi |= amount._value >>32 & 0x3fffff
+                lo = amount._value & 0xffffffff
 
             # Convert from a bitArray to an array of bytes.
             arr = [hi, lo]
@@ -665,7 +671,7 @@ class STAmount:
                 bl = 0
             else:
                 x = arr[l - 1]
-                bl = (l - 1) * 32 + (math.round(x / 0x10000000000) or 32)
+                bl = (l - 1) * 32 + (round(x / 0x10000000000) or 32)
 
             # Setup a new byte array and filled the byte data in
             # Results should not longer than 8 bytes as defined earlier
@@ -674,12 +680,12 @@ class STAmount:
             i = 0
             while i < bl/8:
                 if ((i & 3) == 0):
-                    tmp = arr[i / 4]
-                tmparray.push(tmp >> 24)
-                # console.log("newPush:", i, tmp >> > 24)
+                    tmp = arr[round(i / 4)]
+                #tmparray.append(tmp >> 24)
+                tmparray.append((tmp >> 24) % 256)
                 tmp <<= 8
                 i += 1
-
+            #print('tmparray is', tmparray)
             if len(tmparray) > 8:
                 raise Exception('Invalid byte array length in AMOUNT value representation')
             valueBytes = tmparray
@@ -949,4 +955,3 @@ def sort_fields(keys):
     #    if(sort_field_compare
     QuickSort(keys, 0, len(keys) - 1)
     return keys
-
