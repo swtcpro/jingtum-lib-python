@@ -14,7 +14,7 @@ class RemoteTest(unittest.TestCase):
     def test_create_pay_object(self):
         remote = Remote(local_sign=True)
         if not isinstance(remote.connect(None), Exception):
-            tx = remote.buildPaymentTx({
+            options =  {
                 'account': 'j9fE48ebcvwnKSGnPdtN6jGNM9yVBMVaH8',
                 'to': 'jEmEWuLQXgtBaro86hScnBpjN3TgKSoQGD',
                 'amount': {
@@ -22,9 +22,11 @@ class RemoteTest(unittest.TestCase):
                     "currency": "SWT",
                     "issuer": ""
                 }
-            })
+            }
+            tx = remote.buildPaymentTx(options)
             tx.setSecret('ssTkYQLLYiZs7Sosp12sB43TocUbd')
-            tx.addMemo('给jDUjqoDZLhzx4DCf6pvSivjkjgtRESY62c支付0.5swt.')  # 可选
+            #tx.addMemo('给jDUjqoDZLhzx4DCf6pvSivjkjgtRESY62c支付0.5swt.')  # 可选
+            #tx.addMemo('给')  # 可选
             #tx.addMemo('123')
             s=tx.submit()
             result=remote.parse_payment(s)
@@ -38,8 +40,8 @@ class RemoteTest(unittest.TestCase):
                 'target': 'jEmEWuLQXgtBaro86hScnBpjN3TgKSoQGD',
                 'limit': {
                     "value": "0.5",
-                    "currency": "SWT",
-                    "issuer": ""
+                    "currency": "CCA",
+                    "issuer": "js7M6x28mYDiZVJJtfJ84ydrv2PthY9W9u"
                 }
         }
         options_authorize = {
@@ -48,8 +50,8 @@ class RemoteTest(unittest.TestCase):
                 'target': 'jEmEWuLQXgtBaro86hScnBpjN3TgKSoQGD',
                 'limit': {
                     "value": "0.5",
-                    "currency": "SWT",
-                    "issuer": ""
+                    "currency": "CCA",
+                    "issuer": "js7M6x28mYDiZVJJtfJ84ydrv2PthY9W9u"
                 }
         }
         options_freeze = {
@@ -58,8 +60,8 @@ class RemoteTest(unittest.TestCase):
             'target': 'jEmEWuLQXgtBaro86hScnBpjN3TgKSoQGD',
             'limit': {
                 "value": "0.5",
-                "currency": "SWT",
-                "issuer": ""
+                "currency": "CCA",
+                "issuer": "js7M6x28mYDiZVJJtfJ84ydrv2PthY9W9u"
             }
         }
         if not isinstance(remote.connect(None), Exception):
@@ -94,10 +96,6 @@ class RemoteTest(unittest.TestCase):
                 'delegate_key': 'jEmEWuLQXgtBaro86hScnBpjN3TgKSoQGD',
                 'set_flag': '123'
         }
-        options_signer = {
-            'type': 'signer',
-            'account': 'j9fE48ebcvwnKSGnPdtN6jGNM9yVBMVaH8'
-        }
         if not isinstance(remote.connect(None), Exception):
             tx = remote.buildAccountSetTx(options_property)
             tx.setSecret('ssTkYQLLYiZs7Sosp12sB43TocUbd')
@@ -110,14 +108,6 @@ class RemoteTest(unittest.TestCase):
             s=tx.submit()
             result=remote.parse_payment(s)
             print('buildAccountSetTx delegate result is', result)
-
-            '''
-            tx = remote.buildAccountSetTx(options_signer)
-            tx.setSecret('ssTkYQLLYiZs7Sosp12sB43TocUbd')
-            s=tx.submit()
-            result=remote.parse_payment(s)
-            print('freeze result is', result)
-            '''
 
 if __name__ == '__main__':
     unittest.main()

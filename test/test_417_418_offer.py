@@ -19,7 +19,7 @@ class OfferTest(unittest.TestCase):
             'account': 'jB7rxgh43ncbTX4WeMoeadiGMfmfqY2xLZ',
             'taker_gets': {
                 'value': '0.01',
-                'currency': 'CNY',
+                'currency': '8100000036000020160622201606300120000002',
                 'issuer': 'jBciDE8Q3uJjf111VeiUNM775AMKHEbBLS'
             },
             'taker_pays': {
