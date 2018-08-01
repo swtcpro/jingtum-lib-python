@@ -104,12 +104,3 @@ class base58():
             return array
 
         raise Exception('Non-base' + self.BASE + ' character')
-
-
-"""
-return {
-	'encode': encode,
-	'decodeUnsafe': decodeUnsafe,
-	'decode': decode
-}
-"""
