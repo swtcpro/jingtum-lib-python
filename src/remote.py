@@ -429,11 +429,19 @@ class Remote:
         else:
             return data
     def parse_OrderBook_info(self, data):
-        data = json.loads(data['callback'])
-        return {
-            'ledger_current_index': data['result']['ledger_current_index'],
-            'offers': data['result']['offers']
-        }
+        if isinstance(data, dict) and data['callback']:
+            data = json.loads(data['callback'])
+            if data['status'] == 'success':
+                return {
+                    'ledger_current_index': data['result']['ledger_current_index'],
+                    'offers': data['result']['offers']
+                }
+            else:
+                return {
+                    'error': data['error']
+                }
+        else:
+            return data
 
     def parse_account_info(self, data):
         if isinstance(data, dict) and data['callback']:
