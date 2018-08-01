@@ -5,15 +5,10 @@
 import math,re
 from jingtum_python_baselib.wallet import Wallet
 from jingtum_python_baselib.utils import hexToBytes
-from jingtum_python_baselib.datacheck import isTumCode
+from jingtum_python_baselib.datacheck import isTumCode,isCurrency
 
 
-CURRENCY_NAME_LEN = 3 # 货币长度
-CURRENCY_NAME_LEN2 = 6 # 货币长度
 bi_xns_max = 9e18
-#
-# Amount class in the style of Java's BigInteger class
-# https: # docs.oracle.com / javase / 7 / docs / api / java / math / BigInteger.html
 
 
 class Amount:
@@ -207,12 +202,10 @@ class Amount:
             currencyData.append(0)
             i += 1
 
-        currency_length = len(self._currency)
         # Only handle the currency with correct symbol
-        if currency_length >= CURRENCY_NAME_LEN and currency_length <= CURRENCY_NAME_LEN2:
-            currencyCode = self._currency # 区分大小写
+        if isCurrency(self._currency):
             currencyData[12:15] = map(ord, self._currency)
-        elif currency_length == 40:
+        elif len(self._currency) == 40:
             # for TUM code start with 8
             # should be HEX code
             if re.match('^[0-9A-F]',self._currency):
