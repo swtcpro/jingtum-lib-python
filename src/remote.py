@@ -567,6 +567,8 @@ class Remote:
             clear_flag = options['clear_flag']
         elif options.__contains__('clear'):
             clear_flag = options['clear']
+        else:
+            clear_flag = None
         if not Wallet.isValidAddress(src):
             tx.tx_json['src'] = Exception('invalid source address')
             return tx;
@@ -576,21 +578,30 @@ class Remote:
 
         SetClearFlags = set_clear_flags['AccountSet']
 
-        set_flag = self.__prepareFlag(set_flag, SetClearFlags)
         if set_flag:
-            tx.tx_json['SetFlag'] = set_flag
+            set_flag = self.__prepareFlag(set_flag, SetClearFlags)
+            if set_flag:
+                tx.tx_json['SetFlag'] = set_flag
 
-        clear_flag = self.__prepareFlag(clear_flag, SetClearFlags)
-        if clear_flag:
-            tx.tx_json['ClearFlag'] = clear_flag
+        if clear_flag is not None:
+            clear_flag = self.__prepareFlag(clear_flag, SetClearFlags)
+            if clear_flag:
+                tx.tx_json['ClearFlag'] = clear_flag
+
         return tx
 
     def __prepareFlag(self, flag, SetClearFlags):
+        result = None
         if isinstance(flag, (int,float)):
-            flag = SetClearFlags[flag]
+            result = flag
         else:
-            flag = SetClearFlags['asf' + flag]
-        return flag
+            if flag in SetClearFlags:
+                result = SetClearFlags[flag]
+            else:
+                key = 'asf' + flag
+                if key in SetClearFlags:
+                    result = SetClearFlags[key]
+        return result
 
     def __buildDelegateKeySet(self, options, tx):
         if options.__contains__('source'):

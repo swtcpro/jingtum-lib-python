@@ -4,15 +4,11 @@
 
 import math,re
 from jingtum_python_baselib.wallet import Wallet
-from jingtum_python_baselib.datacheck import isTumCode
+from jingtum_python_baselib.utils import hexToBytes
+from jingtum_python_baselib.datacheck import isTumCode,isCurrency
 
 
-CURRENCY_NAME_LEN = 3 # 货币长度
-CURRENCY_NAME_LEN2 = 6 # 货币长度
 bi_xns_max = 9e18
-#
-# Amount class in the style of Java's BigInteger class
-# https: # docs.oracle.com / javase / 7 / docs / api / java / math / BigInteger.html
 
 
 class Amount:
@@ -52,7 +48,7 @@ class Amount:
         return not self.is_zero() and not self.is_negative()
 
     def is_zero(self):
-        return self._value.isZero()
+        return self._value == 0
 
     def issuer(self):
         return self._issuer
@@ -84,31 +80,30 @@ class Amount:
             # only allow
             self.parse_swt_value(in_json)
         elif isinstance(in_json,object):
-            if not isTumCode(in_json.currency):
+            if not isTumCode(in_json['currency']):
                 raise Exception('Amount.parse_json: Input JSON has invalid Tum info!')
             else:
                 # AMOUNT could have a field named either as 'issuer' or as 'counterparty' for SWT, self can be undefined
-                if (in_json.currency != 'SWT'):
-                    self._currency = in_json.currency
+                if (in_json['currency'] != 'SWT'):
+                    self._currency = in_json['currency']
                     self._is_native = False
-                    if in_json.__containcs__('issuer') and in_json['issuer'] is not None:
+                    if in_json.__contains__('issuer') and in_json['issuer'] is not None:
                         if (Wallet.isValidAddress(in_json['issuer'])):
-                            self._issuer = in_json.issuer
+                            self._issuer = in_json['issuer']
                             # TODO, need to find a better way for extracting the exponent and digits
-                            vpow =  in_json.value
-                            vpow = str(vpow.toExponential())
-                            vpow = (vpow.substr(vpow.lastIndexOf("e") + 1))
-                            offset = 15 - vpow
+                            vpow =  float(in_json['value'])
+                            vpow = str("%e"%vpow)
+                            vpow = vpow[vpow.rfind("e") + 1:].replace("0", "")
+                            offset = 15 - int(vpow)
                             factor = math.pow(10, offset)
-                            value = ( bignumber(in_json.value).mul(factor)).toString()
-                            self._value =  value
+                            self._value = int(float(in_json['value'])*factor)
                             self._offset = -1 * offset
                         else:
                             raise Exception('Amount.parse_json: Input JSON has invalid issuer info!')
                     else:
                         raise Exception('Amount.parse_json: Input JSON has invalid issuer info!')
                 else:
-                    self.parse_swt_value(str(in_json.value))
+                    self.parse_swt_value(str(in_json['value']))
         else:
             raise Exception('Amount.parse_json: Unsupported JSON type!')
         return self
@@ -204,23 +199,17 @@ class Amount:
 
         i = 0
         while i < 20:
-            currencyData.append[0]
+            currencyData.append(0)
             i += 1
 
         # Only handle the currency with correct symbol
-        if (len(self._currency) >= CURRENCY_NAME_LEN and len(self._currency) <= CURRENCY_NAME_LEN2):
-            currencyCode = self._currency # 区分大小写
-            end = 14
-            len = len(currencyCode) - 1
-            j = len
-            while j >= 0:
-                currencyData[end - j] = ord(currencyCode[len - j]) & 0xff
-                j -= 1
-        elif (len(self._currency) == 40):
+        if isCurrency(self._currency):
+            currencyData[12:15] = map(ord, self._currency)
+        elif len(self._currency) == 40:
             # for TUM code start with 8
             # should be HEX code
-            if re.match('^[0-9A-F]i',self._currency):
-                currencyData =  BigInteger(self._currency, 16).toArray(None, 20)
+            if re.match('^[0-9A-F]',self._currency):
+                currencyData =  hexToBytes(self._currency)
             else:
                 raise Exception('Invalid currency code.')
 
@@ -228,3 +217,4 @@ class Amount:
             raise Exception('Incorrect currency code length.')
 
         return currencyData
+
