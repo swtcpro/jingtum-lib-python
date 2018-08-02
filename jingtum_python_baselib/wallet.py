@@ -22,11 +22,11 @@ class Wallet:
      * @returns {{secret: string, address: string}}
     """
     @staticmethod
-    def generate(self):
-        self.secret = get_secret()
-        self.keypairs = root_key_from_seed(parse_seed(self.secret))
-        address = get_jingtum_from_key(self.keypairs)
-        return {'secret': self.secret, 'address': address}
+    def generate():
+        secret = get_secret()
+        keypairs = root_key_from_seed(parse_seed(secret))
+        address = get_jingtum_from_key(keypairs)
+        return {'secret': secret, 'address': address}
 
     """
      * static function
@@ -35,11 +35,10 @@ class Wallet:
      * @returns {*}
     """
     #@staticmethod
-    def from_secret(self, secret):
+    def from_secret(secret):
         try:
-            self.keypairs = root_key_from_seed(parse_seed(secret))
-            self.secret = secret
-            address = get_jingtum_from_key(self.keypairs)
+            keypairs = root_key_from_seed(parse_seed(secret))
+            address = get_jingtum_from_key(keypairs)
             return {'secret': secret, 'address': address}
         except Exception:
             return None
@@ -84,7 +83,6 @@ class Wallet:
         if not self.keypairs:
             return None
             # Verify a correct signature is created (uses a fixed k value):
-        #result = jingtum_sign(self.keypairs, message.encode()) original py,has issue
         result = jingtum_sign(self.keypairs, message).decode()
         return result
 
@@ -101,7 +99,6 @@ class Wallet:
     """
      * get wallet secret
      * @returns {*}
-     * not finish yet
     """
     def secret(self):
         if not self.secret:

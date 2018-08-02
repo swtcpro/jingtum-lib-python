@@ -12,6 +12,7 @@ from binascii import hexlify, unhexlify
 from random import randint
 from ecdsa import curves, SigningKey
 from ecdsa.util import sigencode_der
+
 from jingtum_python_baselib.utils import *
 from jingtum_python_baselib.base58 import base58
 
@@ -138,14 +139,10 @@ def first_half_of_sha512(*bytes):
 
 def ecc_point_to_bytes_compressed(point, pad=False):
     """
-    Implemented as a prototype extension
-    ``sjcl.ecc.point.prototype.toBytesCompressed`` in ``sjcl-custom``.
-
     Also implemented as ``KeyPair.prototype._pub_bits``, though in
     that case it explicitly first pads the point to the bit length of
     the curve prime order value.
     """
-
     header = b'\x02' if point.y() % 2 == 0 else b'\x03'
     bytes = to_bytes(
         point.x(),
@@ -166,14 +163,6 @@ def get_jingtum_from_pubkey(pubkey):
     ripemd160.update(hashlib.sha256(pubkey).digest())
     return JingtumBaseDecoder.encode(ripemd160.digest())
 
-"""
-def get_jingtum_from_secret(seed):
-#Another helper. Returns the first jingtum address from the secret.
-    key = root_key_from_seed(parse_seed(seed))
-    pubkey = ecc_point_to_bytes_compressed(key.privkey.public_key.point, pad=True)
-    return get_jingtum_from_pubkey(pubkey)
-"""
-
 def get_jingtum_publickey(key):
     """Another helper. Returns the jingtum publickey from the key."""
     pubkey = ecc_point_to_bytes_compressed(key.privkey.public_key.point, pad=True)
@@ -192,14 +181,12 @@ def ecdsa_sign(key, signing_hash, **kw):
     """
     r, s = key.sign_number(int(signing_hash, 16), **kw)
     r, s = ecdsa_make_canonical(r, s)
-    # Encode signature in DER format, as in
-    # ``sjcl.ecc.ecdsa.secretKey.prototype.encodeDER``
+    # Encode signature in DER format
     der_coded = sigencode_der(r, s, None)
     return der_coded
 
 def ecdsa_make_canonical(r, s):
     """Make sure the ECDSA signature is the canonical one.
-
     """
     # For a canonical signature we want the lower of two possible values for s
     # 0 < s <= n/2
