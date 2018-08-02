@@ -249,7 +249,7 @@ class Transaction:
             self.signing()
 
     def signing(self):
-        from jingtum_python_baselib.Serializer import Serializer
+        from jingtum_python_baselib.serializer import Serializer
         self.tx_json['Fee'] = self.tx_json['Fee'] / 1000000
 
         # payment
