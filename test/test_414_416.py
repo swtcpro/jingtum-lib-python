@@ -23,8 +23,8 @@ class RemoteTest(unittest.TestCase):
                     "issuer": ""
                 }
             }
-            tx = remote.buildPaymentTx(options)
-            tx.setSecret('ssTkYQLLYiZs7Sosp12sB43TocUbd')
+            tx = remote.build_payment_tx(options)
+            tx.set_secret('ssTkYQLLYiZs7Sosp12sB43TocUbd')
             #tx.addMemo('给jDUjqoDZLhzx4DCf6pvSivjkjgtRESY62c支付0.5swt.')  # 可选
             #tx.addMemo('给')  # 可选
             #tx.addMemo('123')
@@ -65,20 +65,20 @@ class RemoteTest(unittest.TestCase):
             }
         }
         if not isinstance(remote.connect(None), Exception):
-            tx = remote.buildRelationTx(options_trust)
-            tx.setSecret('ssTkYQLLYiZs7Sosp12sB43TocUbd')
+            tx = remote.build_relation_tx(options_trust)
+            tx.set_secret('ssTkYQLLYiZs7Sosp12sB43TocUbd')
             s=tx.submit()
             result=remote.parse_payment(s)
             print('trust result is', result)
 
-            tx = remote.buildRelationTx(options_authorize)
-            tx.setSecret('ssTkYQLLYiZs7Sosp12sB43TocUbd')
+            tx = remote.build_relation_tx(options_authorize)
+            tx.set_secret('ssTkYQLLYiZs7Sosp12sB43TocUbd')
             s=tx.submit()
             result=remote.parse_payment(s)
             print('authorize result is', result)
 
-            tx = remote.buildRelationTx(options_freeze)
-            tx.setSecret('ssTkYQLLYiZs7Sosp12sB43TocUbd')
+            tx = remote.build_relation_tx(options_freeze)
+            tx.set_secret('ssTkYQLLYiZs7Sosp12sB43TocUbd')
             s=tx.submit()
             result=remote.parse_payment(s)
             print('freeze result is', result)
@@ -97,14 +97,14 @@ class RemoteTest(unittest.TestCase):
                 'set_flag': '123'
         }
         if not isinstance(remote.connect(None), Exception):
-            tx = remote.buildAccountSetTx(options_property)
-            tx.setSecret('ssTkYQLLYiZs7Sosp12sB43TocUbd')
+            tx = remote.build_account_set_tx(options_property)
+            tx.set_secret('ssTkYQLLYiZs7Sosp12sB43TocUbd')
             s=tx.submit()
             result=remote.parse_payment(s)
             print('buildAccountSetTx property result is', result)
 
-            tx = remote.buildAccountSetTx(options_delegate)
-            tx.setSecret('ssTkYQLLYiZs7Sosp12sB43TocUbd')
+            tx = remote.build_account_set_tx(options_delegate)
+            tx.set_secret('ssTkYQLLYiZs7Sosp12sB43TocUbd')
             s=tx.submit()
             result=remote.parse_payment(s)
             print('buildAccountSetTx delegate result is', result)

@@ -30,8 +30,8 @@ class OfferTest(unittest.TestCase):
         }
 
         if not isinstance(remote.connect(None), Exception):
-            tx = remote.buildOfferCreateTx(options)
-            tx.setSecret('sn37nYrQ6KPJvTFmaBYokS3FjXUWd')
+            tx = remote.build_offer_create_tx(options)
+            tx.set_secret('sn37nYrQ6KPJvTFmaBYokS3FjXUWd')
             s=tx.submit()
             result=remote.parse_payment(s)
             print('test_build_offer_create result is', result)
@@ -44,8 +44,8 @@ class OfferTest(unittest.TestCase):
         }
 
         if not isinstance(remote.connect(None), Exception):
-            tx = remote.buildOfferCancelTx(options)
-            tx.setSecret('sn37nYrQ6KPJvTFmaBYokS3FjXUWd')
+            tx = remote.build_offer_cancel_tx(options)
+            tx.set_secret('sn37nYrQ6KPJvTFmaBYokS3FjXUWd')
             s=tx.submit()
             result=remote.parse_payment(s)
             print('test_build_offer_cancel result is', result)
