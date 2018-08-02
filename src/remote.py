@@ -15,7 +15,7 @@ from numbers import Number
 from eventemitter import EventEmitter
 
 from jingtum_python_baselib.wallet import Wallet
-from src import util
+from jingtum_python_baselib.utils import *
 from src.config import Config
 from src.request import Request
 from src.server import Server, WebSocketServer
@@ -35,7 +35,7 @@ LEDGER_OPTIONS = ['closed', 'header', 'current']
 """
 
 
-def ToAmount(amount):
+def to_amount(amount):
     if (amount.__contains__('value') and int(float(amount['value'])) > 100000000000):
         return Exception('invalid amount: amount\'s maximum value is 100000000000')
     if (amount['currency'] == Config.currency):
@@ -232,7 +232,7 @@ class Remote:
             return req
         if options['ledger_index'] and isinstance(options['ledger_index'], int):
             req.message['ledger_index'] = options['ledger_index']
-        elif options['ledger_hash'] and util.is_valid_hash(options['ledger_hash']):
+        elif options['ledger_hash'] and is_valid_hash(options['ledger_hash']):
             req.message['ledger_hash'] = options['ledger_hash']
         if 'full' in options.keys() and isinstance(options['full'], bool):
             req.message['full'] = options['full']
@@ -258,7 +258,7 @@ class Remote:
         if not isinstance(options, dict):
             req.message['type'] = Exception('invalid options type')
             return req
-        if not util.is_valid_hash(options['hash']):
+        if not is_valid_hash(options['hash']):
             req.message['hash'] = Exception('invalid tx hash')
             return req
         req.message['transaction'] = options['hash']
@@ -299,7 +299,7 @@ class Remote:
             req.message['account'] = account
         if ledger:
             req.select_ledger(ledger)
-        if util.is_valid_address(peer):
+        if Wallet.is_valid_address(peer):
             req.message['peer'] = peer
         if limit:
             limit = int(limit)
@@ -413,7 +413,7 @@ class Remote:
             'state': data['result']['info']['server_state']
         }
 
-    def parse_AccountTx_info(self, data):
+    def parse_account_tx_info(self, data):
         if isinstance(data, dict) and data['callback']:
             data = json.loads(data['callback'])
             if data['status'] == 'success':
@@ -428,7 +428,8 @@ class Remote:
                 }
         else:
             return data
-    def parse_OrderBook_info(self, data):
+
+    def parse_orderbook_info(self, data):
         if isinstance(data, dict) and data['callback']:
             data = json.loads(data['callback'])
             if data['status'] == 'success':
@@ -499,7 +500,7 @@ class Remote:
      * 创建支付对象
     """
 
-    def buildPaymentTx(self, options):
+    def build_payment_tx(self, options):
         tx = Transaction(self, None)
         if not options:  # typeof options没有转换
             tx.tx_json['obj'] = Exception('invalid options type')
@@ -517,25 +518,25 @@ class Remote:
             dst = options['to']
         amount = options['amount']
 
-        if not Wallet.isValidAddress(src):
+        if not Wallet.is_valid_address(src):
             tx.tx_json['src'] = Exception('invalid source address')
             return tx
-        if not Wallet.isValidAddress(dst):
+        if not Wallet.is_valid_address(dst):
             tx.tx_json['dst'] = Exception('invalid destination address')
             return tx
 
-        if not utils.isValidAmount(amount):
+        if not utils.is_valid_amount(amount):
             tx.tx_json['amount'] = Exception('invalid amount')
             return tx
 
         tx.tx_json['TransactionType'] = 'Payment'
         tx.tx_json['Account'] = src
-        tx.tx_json['Amount'] = ToAmount(amount)
+        tx.tx_json['Amount'] = to_amount(amount)
         tx.tx_json['Destination'] = dst
         return tx
 
     ##设置账号属性
-    def buildAccountSetTx(self, options):
+    def build_account_set_tx(self, options):
         tx = Transaction(self, None)
         if not options:
             tx.tx_json['obj'] = ValueError('invalid options type')
@@ -544,15 +545,15 @@ class Remote:
             tx.tx_json['type'] = ValueError('invalid account set type')
             return tx
         if options['type'] == 'property':
-            return self.__buildAccountSet(options, tx)
+            return self.__build_account_set(options, tx)
         elif options['type'] == 'delegate':
-            return self.__buildDelegateKeySet(options, tx)
+            return self.__build_delegate_key_set(options, tx)
         elif options['type'] == 'signer':
-            return self.__buildSignerSet() #not implement yet
+            return self.__build_signer_set() #not implement yet
         tx.tx_json['msg'] = Warning('build account set should not go here')
         return tx
 
-    def __buildAccountSet(self, options, tx):
+    def __build_account_set(self, options, tx):
         if options.__contains__('source'):
             src = options['source']
         elif options.__contains__('from'):
@@ -569,7 +570,7 @@ class Remote:
             clear_flag = options['clear']
         else:
             clear_flag = None
-        if not Wallet.isValidAddress(src):
+        if not Wallet.is_valid_address(src):
             tx.tx_json['src'] = Exception('invalid source address')
             return tx;
 
@@ -579,18 +580,18 @@ class Remote:
         SetClearFlags = set_clear_flags['AccountSet']
 
         if set_flag:
-            set_flag = self.__prepareFlag(set_flag, SetClearFlags)
+            set_flag = self.__prepare_flag(set_flag, SetClearFlags)
             if set_flag:
                 tx.tx_json['SetFlag'] = set_flag
 
         if clear_flag is not None:
-            clear_flag = self.__prepareFlag(clear_flag, SetClearFlags)
+            clear_flag = self.__prepare_flag(clear_flag, SetClearFlags)
             if clear_flag:
                 tx.tx_json['ClearFlag'] = clear_flag
 
         return tx
 
-    def __prepareFlag(self, flag, SetClearFlags):
+    def __prepare_flag(self, flag, SetClearFlags):
         result = None
         if isinstance(flag, (int,float)):
             result = flag
@@ -603,7 +604,7 @@ class Remote:
                     result = SetClearFlags[key]
         return result
 
-    def __buildDelegateKeySet(self, options, tx):
+    def __build_delegate_key_set(self, options, tx):
         if options.__contains__('source'):
             src = options['source']
         elif options.__contains__('from'):
@@ -612,10 +613,10 @@ class Remote:
             src = options['account']
         delegate_key = options['delegate_key']
 
-        if not Wallet.isValidAddress(src):
+        if not Wallet.is_valid_address(src):
             tx.tx_json['delegate_key'] = Exception('invalid source address')
             return tx
-        if not Wallet.isValidAddress(delegate_key):
+        if not Wallet.is_valid_address(delegate_key):
             tx.tx_json['delegate_key'] = Exception('invalid regular key address')
             return tx
         tx.tx_json['TransactionType'] = 'SetRegularKey'
@@ -623,11 +624,11 @@ class Remote:
         tx.tx_json['RegularKey'] = delegate_key
         return tx
 
-    def __buildSignerSet(self):
+    def __build_signer_set(self):
         return None
 
     # 挂单
-    def buildOfferCreateTx(self, options):
+    def build_offer_create_tx(self, options):
         tx = Transaction(self, None)
         if not options:
             tx.tx_json['obj'] = TypeError('invalid options type')
@@ -651,7 +652,7 @@ class Remote:
         elif options.__contains__('gets'):
             taker_pays = options['gets']
 
-        if not Wallet.isValidAddress(src):
+        if not Wallet.is_valid_address(src):
             tx.tx_json['src'] = Exception('invalid source address')
             return tx
         if not isinstance(offer_type, str) or not offer_type in OfferTypes:
@@ -661,26 +662,26 @@ class Remote:
         if isinstance(taker_gets, str) and not int(taker_gets) and not float(taker_gets):
             tx.tx_json['taker_gets2'] = Exception('invalid to pays amount')
             return tx
-        if not taker_gets and not utils.isValidAmount(taker_gets):
+        if not taker_gets and not utils.is_valid_amount(taker_gets):
             tx.tx_json['taker_gets2'] = Exception('invalid to pays amount object')
             return tx
         if isinstance(taker_pays, str) and not int(taker_pays) and not not float(taker_pays):
             tx.tx_json['taker_pays2'] = Exception('invalid to gets amount')
             return tx
-        if not taker_pays and not utils.isValidAmount(taker_pays):
+        if not taker_pays and not utils.is_valid_amount(taker_pays):
             tx.tx_json['taker_pays2'] = Exception('invalid to gets amount object')
             return tx
 
         tx.tx_json['TransactionType'] = 'OfferCreate'
         if offer_type is 'Sell':
-            tx.setFlags(offer_type)
+            tx.set_flags(offer_type)
         tx.tx_json['Account'] = src
-        tx.tx_json['TakerPays'] = ToAmount(taker_pays)
-        tx.tx_json['TakerGets'] = ToAmount(taker_gets)
+        tx.tx_json['TakerPays'] = to_amount(taker_pays)
+        tx.tx_json['TakerGets'] = to_amount(taker_gets)
         return tx
 
     # 取消挂单
-    def buildOfferCancelTx(self, options):
+    def build_offer_cancel_tx(self, options):
         tx = Transaction(self, None)
         if not options:
             tx.tx_json.obj = Exception('invalid options type')
@@ -692,7 +693,7 @@ class Remote:
         elif options.__contains__('account'):
             src = options['account']
         sequence = options['sequence']
-        if not Wallet.isValidAddress(src):
+        if not Wallet.is_valid_address(src):
             tx.tx_json['src'] = Exception('invalid source address')
             return tx
         if not int(sequence) and not float(sequence):
@@ -703,7 +704,7 @@ class Remote:
         tx.tx_json['OfferSequence'] = int(sequence)
         return tx
 
-    def __buildRelationSet(self, options, tx):
+    def __build_relation_set(self, options, tx):
         if options.__contains__('source'):
             src = options['source']
         elif options.__contains__('from'):
@@ -714,13 +715,13 @@ class Remote:
         des = options['target']
         limit = options['limit']
 
-        if not Wallet.isValidAddress(src):
+        if not Wallet.is_valid_address(src):
             tx.tx_json['src'] = Exception('invalid source address')
             return tx
-        if not Wallet.isValidAddress(des):
+        if not Wallet.is_valid_address(des):
             tx.tx_json['des'] = Exception('invalid target address')
             return tx
-        if not utils.isValidAmount(limit):
+        if not utils.is_valid_amount(limit):
             tx.tx_json['limit'] = Exception('invalid amount')
             return tx
 
@@ -738,7 +739,7 @@ class Remote:
             tx.tx_json['LimitAmount'] = limit
         return tx
 
-    def __buildTrustSet(self, options, tx):
+    def __build_trust_set(self, options, tx):
         if options.__contains__('source'):
             src = options['source']
         elif options.__contains__('from'):
@@ -751,10 +752,10 @@ class Remote:
         if options.__contains__('quality_in'):
             tx.tx_json['QualityOut'] = options['quality_in']
 
-        if not Wallet.isValidAddress(src):
+        if not Wallet.is_valid_address(src):
             tx.tx_json['src'] = Exception('invalid source address')
             return tx
-        if not utils.isValidAmount(limit):
+        if not utils.is_valid_amount(limit):
             tx.tx_json['limit'] = Exception('invalid amount')
             return tx
 
@@ -775,7 +776,7 @@ class Remote:
      * @returns {Transaction}
      * 创建关系对象
     """
-    def buildRelationTx(self, options):
+    def build_relation_tx(self, options):
         tx = Transaction(self, None)
         if not options:
             tx.tx_json['obj'] = Exception('invalid options type')
@@ -784,22 +785,22 @@ class Remote:
             tx.tx_json['type'] = Exception('invalid relation type')
             return tx
         if options['type'] == 'trust':
-            return self.__buildTrustSet(options, tx)
+            return self.__build_trust_set(options, tx)
         elif options['type'] == 'authorize' or \
                 options['type'] == 'freeze' or options['type'] == 'unfreeze':
-            return self.__buildRelationSet(options, tx)
+            return self.__build_relation_set(options, tx)
         tx.tx_json['msg'] = Exception('build relation set should not go here')
         return tx
 
     ##获得账号交易列表
-    def requestAccountTx(self, options):
+    def request_account_tx(self, options):
         data=[]
         request = Request(self, 'account_tx', None)
         if not isinstance(options, object):
             request.message['type'] = Exception('invalid options type')
             return request
 
-        if not Wallet.isValidAddress(options['account']):
+        if not Wallet.is_valid_address(options['account']):
             request.message['account'] = Exception('account parameter is invalid')
             return request
 
@@ -831,7 +832,7 @@ class Remote:
 
 
     ##获得市场挂单列表
-    def requestOrderBook(self,options):
+    def request_order_book(self,options):
         request = Request(self, 'book_offers',None)
         if not isinstance(options,object):
             request.message['type'] = Exception('invalid options type')
@@ -842,7 +843,7 @@ class Remote:
             taker_gets = options['taker_gets']
         elif options.__contains__('pays'):
             taker_gets=options['pays']
-        if not utils.isValidAmount0(taker_gets):
+        if not utils.is_valid_amount0(taker_gets):
             request.message.taker_gets = Exception('invalid taker gets amount')
             return request
 
@@ -851,7 +852,7 @@ class Remote:
             taker_pays = options['taker_pays']
         elif options.__contains__('gets'):
             taker_pays = options['gets']
-        if not utils.isValidAmount0(taker_pays):
+        if not utils.is_valid_amount0(taker_pays):
             request.message.taker_pays = Exception('invalid taker pays amount')
             return request
 

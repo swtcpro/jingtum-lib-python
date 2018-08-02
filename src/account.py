@@ -9,7 +9,8 @@
  * @constructor
 """
 from eventemitter import EventEmitter
-from src import util
+from jingtum_python_baselib.wallet import Wallet
+from src.utils.utils import affected_accounts
 
 
 class Account:
@@ -27,21 +28,23 @@ class Account:
     def new_listener(self, account, listener):
         if account == 'removeListener':
             return
-        if not util.is_valid_address(account):
+        if not Wallet.is_valid_address(account):
             self.account = Exception('invalid account')
         self.accounts[account] = listener
 
     def remove_listener(self, account):
-        if not util.is_valid_address(account):
+        if not Wallet.is_valid_address(account):
             raise Exception('invalid account')
 
         del self.accounts[account]
 
+    """
     def info_affected_account(self, data):
         # dispatch
-        accounts = util.affected_accounts(data)
+        accounts = affected_accounts(data)
         for account in accounts:
             callback = self.accounts[account]
             tx = util.process_tx(data, account)
             if callback:
                 callback(tx)
+    """

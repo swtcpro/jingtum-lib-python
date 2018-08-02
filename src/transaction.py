@@ -3,7 +3,6 @@ import json
 import math
 
 from src.config import Config
-from src.util import *
 from src.utils.utils import is_number, utils
 from jingtum_python_baselib.utils import *
 from jingtum_python_baselib.wallet import Wallet
@@ -102,11 +101,11 @@ def Number(num):
         return int(num)
 
 
-def MaxAmount(amount):
+def max_amount(amount):
     if (isinstance(amount, str) and is_number(amount)):
         _amount = safe_int(Number(amount) * (1.0001))
         return str(_amount)
-    if (isinstance(amount, dict) and utils.isValidAmount(amount)):
+    if (isinstance(amount, dict) and utils.is_valid_amount(amount)):
         _value = Number(amount['value']) * (1.0001)
         amount['value'] = str(_value)
         return amount
@@ -125,14 +124,19 @@ class Transaction:
         self.tx_json = val
         return self
 
-    def getAccount(self):
+    def get_account(self):
         return self.tx_json['Account']
 
-    def getTransactionType(self):
+    def get_transaction_type(self):
         return self.tx_json['TransactionType']
 
-    def setSecret(self, secret):
-        if not Wallet.isValidSecret(secret):
+    """
+     * set secret
+     * @param secret
+     * 传入密钥
+    """
+    def set_secret(self, secret):
+        if not Wallet.is_valid_secret(secret):
             self.tx_json._secret = Exception('valid secret')
             return
         self._secret = secret
@@ -141,7 +145,7 @@ class Transaction:
     * just only memo data
     * @param memo
     """
-    def addMemo(self, memo):
+    def add_memo(self, memo):
         if (not isinstance(memo, str)):
             self.tx_json['memo_type'] = TypeError('invalid memo type')
             return self
@@ -149,13 +153,13 @@ class Transaction:
             self.tx_json['memo_len'] = TypeError('memo is too long')
             return self
         _memo = {}
-        _memo['MemoData'] = bytesToHex(memo.encode('utf8')).lower()
+        _memo['MemoData'] = bytes_to_hex(memo.encode('utf8')).lower()
         if 'Memos' in self.tx_json:
             self.tx_json['Memos'].append({'Memo': _memo})
         else:
             self.tx_json['Memos'] = [{'Memo': _memo}]
 
-    def setFee(self, fee):
+    def set_fee(self, fee):
         _fee = safe_int(fee)
         if (math.isnan(_fee)):
             self.tx_json['Fee'] = TypeError('invalid fee')
@@ -172,7 +176,7 @@ class Transaction:
     * when path set, sendmax is also set.
     * @param path
     """
-    def setPath(self, key):
+    def set_path(self, key):
         # sha1 string
         if (not isinstance(key, str) and len(key) != 40):
             return Exception('invalid path key')
@@ -185,15 +189,15 @@ class Transaction:
             return
         path = json.load(item.path)
         self.tx_json['Paths'] = path
-        amount = MaxAmount(item['choice'])
+        amount = max_amount(item['choice'])
         self.tx_json['SendMax'] = amount
 
     """
     * limit send max amount
     * @param amount
     """
-    def setSendMax(self, amount):
-        if (utils.isValidAmount(amount) is not None):
+    def set_send_max(self, amount):
+        if (utils.is_valid_amount(amount) is not None):
             return Exception('invalid send max amount')
         self.tx_json['SendMax'] = amount
 
@@ -203,7 +207,7 @@ class Transaction:
     * @param rate
     """
 
-    def setTransferRate(self, rate):
+    def set_transfer_rate(self, rate):
         if (not isinstance(rate, (int, float)) or rate < 0 or rate > 1):
             return Exception('invalid transfer rate')
         self.tx_json['TransferRate'] = (rate + 1) * 1e9
@@ -212,7 +216,7 @@ class Transaction:
     * set transaction flags
     *
      """
-    def setFlags(self, flags):
+    def set_flags(self, flags):
         if (flags is None):
             return
 
@@ -220,12 +224,11 @@ class Transaction:
             self.tx_json['Flags'] = flags
             return
 
-        index = self.getTransactionType()
+        index = self.get_transaction_type()
         if flags.index:
             transaction_flags = transaction_global_flags[index]
         else:
             transaction_flags = {}
-        #transaction_flags = flags[self.getTransactionType()] or {}
         if (isinstance(flags, list)):
             flag_set = flags
         else:
@@ -258,9 +261,7 @@ class Transaction:
             memo_list = self.tx_json['Memos']
             i = 0
             while i < len(memo_list):
-                #memo_list[i]["Memo"]["MemoData"] = hexToString(memo_list[i]["Memo"]["MemoData"]).decode(encoding='UTF-8')
-                #memo_list[i]["Memo"]["MemoData"] = hexToString(memo_list[i]["Memo"]["MemoData"]).decode()
-                memo_list[i]["Memo"]["MemoData"] = hexToString(memo_list[i]["Memo"]["MemoData"])
+                memo_list[i]["Memo"]["MemoData"] = hex_to_str(memo_list[i]["Memo"]["MemoData"])
                 i += 1
 
         if (self.tx_json.__contains__('SendMax') and isinstance(self.tx_json['SendMax'], str)):
@@ -276,7 +277,7 @@ class Transaction:
             self.tx_json['TakerGets'] = Number(self.tx_json['TakerGets']) / 1000000
 
         wt = Wallet(self._secret)
-        self.tx_json['SigningPubKey'] = wt.getPublicKey()
+        self.tx_json['SigningPubKey'] = wt.get_public_key()
         prefix = 0x53545800
         serial = Serializer(None)
         hash = serial.from_json(self.tx_json).hash(prefix)
@@ -284,15 +285,6 @@ class Transaction:
         self.tx_json['blob'] = serial.from_json(self.tx_json).to_hex()
         self.local_sign = True
         return self.tx_json['blob']
-
-
-    """
-     * set secret
-     * @param secret
-     * 传入密钥
-    """
-    def setSecret(self, secret):
-        self._secret = secret
 
     def submit(self):
         for key in self.tx_json:
