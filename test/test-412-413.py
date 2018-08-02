@@ -55,44 +55,21 @@ class RemoteTest(unittest.TestCase):
     #         result = remote.parse_server_info(req.submit())
     #         logger.info(result)
     def test_requestAccountTx(self):
-        remote = Remote()
+        remote = Remote(local_sign=True)
         if not isinstance(remote.connect(None), Exception):
-            req = remote.request_account_tx({'account': 'j9fE48ebcvwnKSGnPdtN6jGNM9yVBMVaH8eee'})
+            req = remote.request_account_tx({'account': 'jBciDE8Q3uJjf111VeiUNM775AMKHEbBLS'})
             temp= req.submit()
             result = remote.parse_account_tx_info(temp)
             logger.info(result)
 
     def test_requestOrderBook(self):
-        remote = Remote()
+        remote = Remote(local_sign=True)
         if not isinstance(remote.connect(None), Exception):
             req = remote.request_order_book({'gets': {'currency': 'SWT', 'issuer': ''},
                   'pays': {'currency': 'CNY', 'issuer': 'jBciDE8Q3uJjf111VeiUNM775AMKHEbBLS'}})
             temp = req.submit()
             result = remote.parse_orderbook_info(temp)
             logger.info(result)
-
-    def test_getAccount(self):
-        remote = Remote()
-        if not isinstance(remote.connect(None), Exception):
-            req = remote.build_offer_cancel_tx({
-                    'account': 'jB7rxgh43ncbTX4WeMoeadiGMfmfqY2xLZ',
-                    'sequence': 688
-                    })
-            temp=req.get_account()
-            logger.info(temp)
-    def test_getTransactionType(self):
-        remote = Remote()
-        if not isinstance(remote.connect(None), Exception):
-            req = remote.build_offer_cancel_tx({
-                    'account': 'jB7rxgh43ncbTX4WeMoeadiGMfmfqY2xLZ',
-                    'sequence': 688
-                    })
-            temp=req.get_transaction_type()
-            logger.info(temp)
-
-
-
-
 
 
 
