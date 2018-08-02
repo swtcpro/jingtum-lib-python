@@ -20,7 +20,7 @@
 #         'type': 'property'
 #     }
 #
-#     tx = remote.buildAccountSetTx(options)
+#     tx = remote.build_ccountSetTx(options)
 #     tx.setSecret('sn37nYrQ6KPJvTFmaBYokS3FjXUWd')
 #     # tx.addMemo('设置账户属性')  # 可选
 #     tx.submit(CheckErr)
@@ -57,37 +57,37 @@ class RemoteTest(unittest.TestCase):
     def test_requestAccountTx(self):
         remote = Remote()
         if not isinstance(remote.connect(None), Exception):
-            req = remote.requestAccountTx({'account': 'j9fE48ebcvwnKSGnPdtN6jGNM9yVBMVaH8eee'})
+            req = remote.request_account_tx({'account': 'j9fE48ebcvwnKSGnPdtN6jGNM9yVBMVaH8eee'})
             temp= req.submit()
-            result = remote.parse_AccountTx_info(temp)
+            result = remote.parse_account_tx_info(temp)
             logger.info(result)
 
     def test_requestOrderBook(self):
         remote = Remote()
         if not isinstance(remote.connect(None), Exception):
-            req = remote.requestOrderBook({'gets': {'currency': 'SWT', 'issuer': ''},
+            req = remote.request_order_book({'gets': {'currency': 'SWT', 'issuer': ''},
                   'pays': {'currency': 'CNY', 'issuer': 'jBciDE8Q3uJjf111VeiUNM775AMKHEbBLS'}})
             temp = req.submit()
-            result = remote.parse_OrderBook_info(temp)
+            result = remote.parse_orderbook_info(temp)
             logger.info(result)
 
     def test_getAccount(self):
         remote = Remote()
         if not isinstance(remote.connect(None), Exception):
-            req = remote.buildOfferCancelTx({
+            req = remote.build_offer_cancel_tx({
                     'account': 'jB7rxgh43ncbTX4WeMoeadiGMfmfqY2xLZ',
                     'sequence': 688
                     })
-            temp=req.getAccount()
+            temp=req.get_account()
             logger.info(temp)
     def test_getTransactionType(self):
         remote = Remote()
         if not isinstance(remote.connect(None), Exception):
-            req = remote.buildOfferCancelTx({
+            req = remote.build_offer_cancel_tx({
                     'account': 'jB7rxgh43ncbTX4WeMoeadiGMfmfqY2xLZ',
                     'sequence': 688
                     })
-            temp=req.getTransactionType()
+            temp=req.get_transaction_type()
             logger.info(temp)
 
 

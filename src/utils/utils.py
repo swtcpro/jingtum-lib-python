@@ -142,7 +142,7 @@ class utils:
             return False
         # non native currency issuer is not allowed to be empty
         if (amount['currency'] != Config.currency
-                and not Wallet.is_valid_sddress(amount['issuer'])):
+                and not Wallet.is_valid_address(amount['issuer'])):
             return False
         return True
 
