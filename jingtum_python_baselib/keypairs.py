@@ -6,8 +6,9 @@
  * Description: Ç®°üÒÀÀµµÄÄ£¿é
 """
 import hashlib
+import os
+import time
 from binascii import hexlify, unhexlify
-import os, time
 from random import randint
 from ecdsa import curves, SigningKey
 from ecdsa.util import sigencode_der
@@ -16,7 +17,7 @@ from jingtum_python_baselib.base58 import base58
 
 SEED_PREFIX = 33
 ACCOUNT_PREFIX = 0
-alphabet = 'jpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65rkm8oFqi1tuvAxyz'
+ALPHABET = 'jpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65rkm8oFqi1tuvAxyz'
 
 def hash256(data):
     """
@@ -44,8 +45,8 @@ def sha256(bytes):
  * @returns {buffer}
  * @private
 """
-def decodeAddress(version, input):
-    s = base58(alphabet)
+def decode_address(version, input):
+    s = base58(ALPHABET)
     bytes = s.decode(input)
     if not bytes or bytes[0] != version or len(bytes) < 5:
         raise Exception('invalid input size')
@@ -61,10 +62,10 @@ def decodeAddress(version, input):
 
 def get_str(l):
     sss = ""
-    while(l>0):
+    while l>0:
         try:
             l, b = divmod(l, 58)
-            sss +=  alphabet[b:b+1]
+            sss +=  ALPHABET[b:b+1]
         except Exception:
             print("get_str error[%s]."%str(b))
             return None

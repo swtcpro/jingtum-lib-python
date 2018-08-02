@@ -16,11 +16,10 @@
  # Convert the input JSON format commands to
  # Hex value for local sign operation.
 
-# stypes = require('./TypesUtils')
 import hashlib
 import copy
 import json
-from jingtum_python_baselib.utils import to_bytes,fmt_hex,bytesToHex
+from jingtum_python_baselib.utils import to_bytes,fmt_hex,bytes_to_hex
 from jingtum_python_baselib.typesutils import *
 from jingtum_python_baselib.keypairs import hash512
 
@@ -279,7 +278,7 @@ class Serializer:
         if isinstance(buf,dict) or isinstance(type(buf),bytes):
             self.buffer = buf
         elif isinstance(buf,str):
-            self.buffer = hex_str_to_byte_array(buf);#sjcl.codec.bytes.fromBits(sjcl.codec.hex.toBits(buf))
+            self.buffer = hex_str_to_byte_array(buf)
         elif not buf:
             self.buffer = []
         else:
@@ -321,7 +320,6 @@ class Serializer:
             if not isinstance(typedef,list):
                 raise Exception('Transaction type is invalid')
 
-            #typedef = typedef.slice()
             obj['TransactionType'] = typedef.pop(0)
         elif isinstance(obj['LedgerEntryType'],str):
             typedef = copy.deepcopy(LEDGER_ENTRY_TYPES[obj['LedgerEntryType']][0])
@@ -329,11 +327,10 @@ class Serializer:
             if not isinstance(typedef,list):
                 raise Exception('LedgerEntryType is invalid')
 
-            #typedef = typedef.slice()
             obj['LedgerEntryType'] = typedef.pop(0)
 
         elif isinstance(obj['AffectedNodes'],object):
-            typedef = METADATA #binformat
+            typedef = METADATA  #binformat
         else:
             raise Exception('Object to be serialized must contain either' +
                 ' TransactionType, LedgerEntryType or AffectedNodes.')
@@ -343,7 +340,7 @@ class Serializer:
         return so
 
     def to_hex(self):
-        return bytesToHex(self.buffer)
+        return bytes_to_hex(self.buffer)
 
     #Append the input bytes array to
     #the internal buffer and set the pointer
@@ -363,4 +360,4 @@ class Serializer:
             STInt32.serialize(sign_buffer, prefix)
         # Copy buffer to temporary buffer
         sign_buffer.append(self.buffer)
-        return bytesToHex(hash512(bytearray(sign_buffer.buffer))[0:32])
+        return bytes_to_hex(hash512(bytearray(sign_buffer.buffer))[0:32])

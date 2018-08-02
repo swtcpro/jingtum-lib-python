@@ -35,7 +35,7 @@ class Wallet:
      * @returns {*}
     """
     #@staticmethod
-    def fromSecret(self, secret):
+    def from_secret(self, secret):
         try:
             self.keypairs = root_key_from_seed(parse_seed(secret))
             self.secret = secret
@@ -51,9 +51,9 @@ class Wallet:
      * @returns {boolean}
     """
     @staticmethod
-    def isValidAddress(address):
+    def is_valid_address(address):
         try:
-            decodeAddress(ACCOUNT_PREFIX, address)
+            decode_address(ACCOUNT_PREFIX, address)
             return True
         except Exception:
             return False
@@ -65,7 +65,7 @@ class Wallet:
      * @returns {boolean}
     """
     @staticmethod
-    def isValidSecret(secret):
+    def is_valid_secret(secret):
         try:
             parse_seed(secret)
             return True
@@ -116,7 +116,7 @@ class Wallet:
             'address': self.address()
         }
 
-    def getPublicKey(self):
+    def get_public_key(self):
         if not self.keypairs:
             return None
         return get_jingtum_publickey(self.keypairs)

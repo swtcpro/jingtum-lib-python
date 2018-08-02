@@ -64,7 +64,7 @@ class base58():
 
         return string
 
-    def decodeUnsafe(self, string):
+    def decode_unsafe(self, string):
         if len(string) == 0:
             return []
 
@@ -99,7 +99,7 @@ class base58():
         return bytes
 
     def decode(self, string):
-        array = self.decodeUnsafe(string)
+        array = self.decode_unsafe(string)
         if (array):
             return array
 

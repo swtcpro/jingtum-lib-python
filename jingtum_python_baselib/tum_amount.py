@@ -2,14 +2,14 @@
 # in Jingtum.
 # - Numbers in hex are big - endian.
 
-import math,re
+import math
+import re
 from jingtum_python_baselib.wallet import Wallet
-from jingtum_python_baselib.utils import hexToBytes
-from jingtum_python_baselib.datacheck import isTumCode,isCurrency
+from jingtum_python_baselib.utils import hex_to_bytes
+from jingtum_python_baselib.datacheck import is_tum_code,is_currency
 
 
-bi_xns_max = 9e18
-
+BI_XNS_MAX = 9e18
 
 class Amount:
     def __init__(self):
@@ -17,7 +17,6 @@ class Amount:
         # integer: SWT
         # {'value': ..., 'currency': ..., 'issuer': ...}
 
-        #self._value = BigInteger() # None for bad value.Always positive.
         self._offset = 0 # Always 0 for SWT.
         self._is_native = True # Default to SWT.Only valid if value is not None.
         self._is_negative = False
@@ -56,7 +55,7 @@ class Amount:
     # Only set the issuer if the input is
     #a valid address.
     def parse_issuer(self,issuer):
-        if (Wallet.isValidAddress(issuer)):
+        if (Wallet.is_valid_address(issuer)):
             self._issuer = issuer
 
         return self
@@ -80,7 +79,7 @@ class Amount:
             # only allow
             self.parse_swt_value(in_json)
         elif isinstance(in_json,object):
-            if not isTumCode(in_json['currency']):
+            if not is_tum_code(in_json['currency']):
                 raise Exception('Amount.parse_json: Input JSON has invalid Tum info!')
             else:
                 # AMOUNT could have a field named either as 'issuer' or as 'counterparty' for SWT, self can be undefined
@@ -88,7 +87,7 @@ class Amount:
                     self._currency = in_json['currency']
                     self._is_native = False
                     if in_json.__contains__('issuer') and in_json['issuer'] is not None:
-                        if (Wallet.isValidAddress(in_json['issuer'])):
+                        if (Wallet.is_valid_address(in_json['issuer'])):
                             self._issuer = in_json['issuer']
                             # TODO, need to find a better way for extracting the exponent and digits
                             vpow =  float(in_json['value'])
@@ -127,7 +126,7 @@ class Amount:
             self._offset = 0
             self._is_negative = m.group(1) and self._value != 0
 
-            if self._value > bi_xns_max:
+            if self._value > BI_XNS_MAX:
                 self._value = None
         else:
             self._value = None
@@ -203,13 +202,13 @@ class Amount:
             i += 1
 
         # Only handle the currency with correct symbol
-        if isCurrency(self._currency):
+        if is_currency(self._currency):
             currencyData[12:15] = map(ord, self._currency)
         elif len(self._currency) == 40:
             # for TUM code start with 8
             # should be HEX code
             if re.match('^[0-9A-F]',self._currency):
-                currencyData =  hexToBytes(self._currency)
+                currencyData =  hex_to_bytes(self._currency)
             else:
                 raise Exception('Invalid currency code.')
 

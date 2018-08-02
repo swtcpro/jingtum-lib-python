@@ -6,7 +6,7 @@ CURRENCY_NAME_LEN2 = 6
 TUM_NAME_LEN = 40
 
 #return True if the code is 3 letters/numbers
-def isCurrency(in_code):
+def is_currency(in_code):
     if isinstance(in_code,str):
         if in_code and len(in_code) >= CURRENCY_NAME_LEN and len(in_code) <= CURRENCY_NAME_LEN2:
             return True
@@ -18,7 +18,7 @@ def isCurrency(in_code):
 #Detect if the string contains only
 #numbers and capital letters.
 
-def isLetterNumer(in_str):
+def is_letter_numer(in_str):
     numbers = '^[0-9A-Z]+$'
     if re.match(numbers, str(in_str)):
         return True
@@ -26,8 +26,8 @@ def isLetterNumer(in_str):
         return False
 
 #return True if the code is 40 letters/numbers
-def isCustomTum(in_code):
-    if (isLetterNumer(in_code) and
+def is_custom_tum(in_code):
+    if (is_letter_numer(in_code) and
         len(str(in_code)) == TUM_NAME_LEN):
         return True
     else:
@@ -38,8 +38,8 @@ def isCustomTum(in_code):
 #input must be defined and non-null
 #Make sure if the code meets the coding rule
 #tum: Custom tum, 40 capital letters or number
-def isTumCode(in_code):
+def is_tum_code(in_code):
     return (isinstance(in_code,str) and \
         (in_code == 'SWT' or \
-        isCurrency(in_code) or \
-        isCustomTum(in_code)))
+        is_currency(in_code) or \
+        is_custom_tum(in_code)))

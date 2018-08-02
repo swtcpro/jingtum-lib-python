@@ -7,13 +7,14 @@
 """
 import binascii
 import six
+import re
 from hashlib import sha256
 
-def bytesToHex(srcinfo):
+def bytes_to_hex(srcinfo):
     # srcinfo is a array
     return ''.join(["%02X" % x for x in srcinfo]).strip()
 
-def hexToBytes(srcinfo):
+def hex_to_bytes(srcinfo):
     if (len(srcinfo) % 2 != 0):
         srcinfo = srcinfo + '0'
     # return BN(srcinfo, 16).toArray(null, len(srcinfo) / 2)
@@ -56,6 +57,20 @@ def to_bytes(number, length=None, endianess='big'):
     s = decode_hex(s)
     return s if endianess == 'big' else s[::-1]
 
+def hex_to_str(h):
+    a = []
+    i = 0
+    strLength = len(h)
+
+    if strLength % 2:
+        a.extend(chr(int(h[0: 1], 16)))
+        i = 1
+
+    for index in range(i, strLength, 2):
+        a.extend(chr(int(h[index: index + 2], 16)))
+
+    return ''.join(a)
+
 def fmt_hex(bytes):
     """Format the bytes as a hex string, return upper-case version.
     """
@@ -68,13 +83,24 @@ def fmt_hex(bytes):
     hex = hex.decode()  # Returns bytes, which makes no sense to me
     return hex.upper()
 
+HASH__RE = '^[A-F0-9]{64}$'
+def is_valid_hash(hash):
+    """
+     hash check for tx and ledger hash
+    :param hash:
+    :return: {boolean}
+    """
+    if not hash or not isinstance(hash, str) or hash == '':
+        return False
+    return re.match(re.compile(HASH__RE), hash)
+
 class JingtumBaseDecoder():
     def __init__(self):
         pass
 
     """Decodes Jingtum's base58 alphabet.
     """
-    alphabet = 'jpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65rkm8oFqi1tuvAxyz'
+    ALPHABET = 'jpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65rkm8oFqi1tuvAxyz'
 
     @classmethod
     def decode(cls, *a, **kw):
@@ -90,9 +116,9 @@ class JingtumBaseDecoder():
     def decode_base(cls, encoded, pad_length=None):
         """Decode a base encoded string with the Jingtum alphabet."""
         n = 0
-        base = len(cls.alphabet)
+        base = len(cls.ALPHABET)
         for char in encoded:
-            n = n * base + cls.alphabet.index(char)
+            n = n * base + cls.ALPHABET.index(char)
         return to_bytes(n, pad_length, 'big')
 
     @classmethod
@@ -123,8 +149,8 @@ class JingtumBaseDecoder():
         # Divide that integer into base58
         res = []
         while n > 0:
-            n, r = divmod(n, len(cls.alphabet))
-            res.append(cls.alphabet[r])
+            n, r = divmod(n, len(cls.ALPHABET))
+            res.append(cls.ALPHABET[r])
         res = ''.join(res[::-1])
 
         # Encode leading zeros as base58 zeros
@@ -135,4 +161,4 @@ class JingtumBaseDecoder():
                 pad += 1
             else:
                 break
-        return cls.alphabet[0] * pad + res
+        return cls.ALPHABET[0] * pad + res

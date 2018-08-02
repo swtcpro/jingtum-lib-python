@@ -1,6 +1,8 @@
-import math,json,re
-from jingtum_python_baselib.utils import fmt_hex,hexToBytes,to_bytes
-from jingtum_python_baselib.keypairs import decodeAddress
+import math
+import json
+import re
+from jingtum_python_baselib.utils import fmt_hex,hex_to_bytes,to_bytes
+from jingtum_python_baselib.keypairs import decode_address
 from jingtum_python_baselib.tum_amount import Amount
 
 #Data type map.
@@ -329,7 +331,7 @@ INVERSE_FIELDS_MAP = {
 
 # Convert an integer value into an array of bytes.
 # The result is appended to the serialized object ('so').
-def convertIntegerToByteArray(val, bytes):
+def convert_integer_to_bytearray(val, bytes):
     if not isinstance(val,(int,float)):
         raise Exception('Value is not a number', bytes)
 
@@ -473,29 +475,13 @@ def get_transaction_type(structure):
     print('Get tx type:', output)
     return output
 
-"""
-/*
- * input: UTF8 coding string 
- * output: HEX code
-*/
-function convertStringToHex(in_str) {
-    var str = unescape(encodeURIComponent(in_str));
-    var out_str = "", i, tmp = 0;
-    for (i = 0; i < str.length; i++) {
-        out_str += (" 00" + Number(str.charCodeAt(i)).toString(16)).substr(-2);
-    }
-    return out_str.toUpperCase();//hex.fromBits(utf8.toBits(in_str)).toUpperCase());
-}
-"""
-def convertStringToHex(inputstr):
-    #result = fmt_hex(bytearray(inputstr.encode()))
-
+def convert_string_to_hex(inputstr):
     out_str = ""
     i = 0
     while i < len(str):
         out_str += (" 00" + str(int(ord(str[i]))))
         i += 1
-    return out_str.upper() #hex.fromBits(utf8.toBits(in_str)).toUpperCase());
+    return out_str.upper()
 
 class SerializedType:
     def serialize_varint(so, val):
@@ -515,14 +501,14 @@ class SerializedType:
 
 # Input:  HEX data in string format
 # Output: byte array
-def serializeHex(so, hexData, noLength=None):
-    byteData = hexToBytes(hexData) #bytes.fromBits(hex.toBits(hexData))
+def serialize_hex(so, hexData, noLength=None):
+    byteData = hex_to_bytes(hexData) #bytes.fromBits(hex.toBits(hexData))
     if not noLength:
         SerializedType.serialize_varint(so, len(byteData))
     so.append(byteData)
 
 # used by Amount serialize
-def arraySet(count, value):
+def array_set(count, value):
     a = []
 
     i = 0
@@ -534,15 +520,15 @@ def arraySet(count, value):
 
 class STInt8(SerializedType):
     def serialize(so, val):
-        so.buffer.extend(convertIntegerToByteArray(val, 1))
+        so.buffer.extend(convert_integer_to_bytearray(val, 1))
 
 class STInt16(SerializedType):
     def serialize(so, val):
-        so.buffer.extend(convertIntegerToByteArray(val, 2))
+        so.buffer.extend(convert_integer_to_bytearray(val, 2))
 
 class STInt32(SerializedType):
     def serialize(so, val):
-        so.buffer.extend(convertIntegerToByteArray(val, 4))
+        so.buffer.extend(convert_integer_to_bytearray(val, 4))
 
 # Use RegExp match function
 # perform case-insensitive matching
@@ -578,19 +564,19 @@ class STInt64(SerializedType):
         while len(big_num_in_hex_str) < 16:
             big_num_in_hex_str = '0' + big_num_in_hex_str
 
-        serializeHex(so, big_num_in_hex_str, True) #noLength = true
+        serialize_hex(so, big_num_in_hex_str, True) #noLength = true
 
 class STHash256:
     def serialize(so, val):
         if isinstance(val,str) and re.match('^[0-9A-F]{0,16}$i',val) \
             and len(val) <= 64:
-            serializeHex(so, val, True) #noLength = true
+            serialize_hex(so, val, True) #noLength = true
         else:
             raise Exception('Invalid Hash256')
 
 class STHash160:
     def serialize(so, val):
-        serializeHex(so, hexToBytes(val), True)
+        serialize_hex(so, hex_to_bytes(val), True)
 
 class STCurrency:
     def serialize(so, val, swt_as_ascii):
@@ -608,7 +594,7 @@ class STAmount:
             raise Exception('Not a valid Amount object.')
 
         # Amount(64 - bit integer)
-        valueBytes = arraySet(8, 0)
+        valueBytes = array_set(8, 0)
 
         # For SWT, offset is 0
         # only convert the value
@@ -625,7 +611,7 @@ class STAmount:
                 valueHex = '0' + valueHex
 
             # Convert the HEX value to bytes array
-            valueBytes = hexToBytes(valueHex) # bytes.fromBits(hex.toBits(valueHex))
+            valueBytes = hex_to_bytes(valueHex) # bytes.fromBits(hex.toBits(valueHex))
 
             # Clear most significant two bits - these bits should already be 0 if
             # Amount enforces the range correctly, but we'll clear them anyway just
@@ -701,18 +687,18 @@ class STAmount:
 
             # Issuer(160 - bit hash)
             # so.append(amount.issuer().to_bytes())
-            so.append(decodeAddress(0,amount.issuer()))
+            so.append(decode_address(0,amount.issuer()))
 
 class STVL(SerializedType):
     def serialize(so, val):
         if isinstance(val, str):
-            serializeHex(so, val)
+            serialize_hex(so, val)
         else:
             raise Exception('Unknown datatype.')
 
 class STAccount(SerializedType):
     def serialize(so, val):
-        byte_data = decodeAddress(0,val)
+        byte_data = decode_address(0,val)
         SerializedType.serialize_varint(so, len(byte_data))
         so.append(byte_data)
 
@@ -774,7 +760,7 @@ class STPathSet(SerializedType):
 
                 if (entry.issuer):
                     #so.append(UInt160.from_json(entry.issuer).to_bytes())
-                    so.append(decodeAddress(0,entry.issuer))
+                    so.append(decode_address(0,entry.issuer))
                 j += 1
             i += 1
 
@@ -817,19 +803,19 @@ class STMemo(SerializedType):
                 value = val[key]
                 if key == 'MemoType' or key == 'MemoFormat':
                     # MemoType and MemoFormat are always ASCII strings
-                    value = convertStringToHex(value)
+                    value = convert_string_to_hex(value)
                     # MemoData can be a JSON object, otherwise it's a string
                 elif key == 'MemoData':
                     if not isinstance(value,str):
                         if (isJson):
                             try:
-                                value = convertStringToHex(json.stringify(value))
+                                value = convert_string_to_hex(json.stringify(value))
                             except Exception:
                                 raise Exception('MemoFormat json with invalid JSON in MemoData field')
                         else:
                             raise Exception('MemoData can only be a JSON object with a valid json MemoFormat')
                     elif isinstance(value,str):
-                        value = convertStringToHex(value)
+                        value = convert_string_to_hex(value)
                 serialize(so, key, value)
                 i += 1
 
