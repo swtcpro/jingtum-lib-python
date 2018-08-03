@@ -14,12 +14,12 @@ from numbers import Number
 
 from eventemitter import EventEmitter
 
-from jingtum_python_baselib.wallet import Wallet
 from jingtum_python_baselib.utils import *
+from jingtum_python_baselib.wallet import Wallet
 from src.config import Config
 from src.request import Request
 from src.server import Server, WebSocketServer
-from src.transaction import RelationTypes,AccountSetTypes,set_clear_flags,OfferTypes
+from src.transaction import RelationTypes, AccountSetTypes, set_clear_flags, OfferTypes
 from src.transaction import Transaction
 from src.utils.cache import LRUCache
 from src.utils.utils import utils
@@ -42,6 +42,7 @@ def to_amount(amount):
         # return new String(parseInt(Number(amount.value) * 1000000.00))
         return str(int(float(amount['value']) * 1000000))
     return amount
+
 
 class Remote:
     def __init__(self, local_sign=False):
@@ -188,7 +189,7 @@ class Remote:
             'callback': result['callback']
         }
         return result
-        #return result['callback']
+        # return result['callback']
 
     def subscribe(self, streams):
         request = Request(self, "subscribe", None)
@@ -376,7 +377,7 @@ class Remote:
     def parse_payment(self, data):
         if isinstance(data, dict) and data['callback']:
             data = json.loads(data['callback'])
-            if data['status']=='success':
+            if data['status'] == 'success':
                 return {
                     'engine_result': data['result']['engine_result'],
                     'engine_result_code': data['result']['engine_result_code'],
@@ -390,14 +391,18 @@ class Remote:
             return data
 
     def parse_transaction(self, data):
+        data = data['callback']
         data = json.loads(data)
         return data['result']
 
     def parse_ledger(self, data):
-        data = json.loads(data)
+        data = data['callback']
+        if not isinstance(data, dict):
+            data = json.loads(data)
         return data['result']['ledger']
 
     def parse_ledger_closed(self, data):
+        data = data['callback']
         data = json.loads(data)
         return {
             'ledger_hash': data['result']['ledger_hash'],
@@ -405,6 +410,7 @@ class Remote:
         }
 
     def parse_server_info(self, data):
+        data = data['callback']
         data = json.loads(data)
         return {
             'version': data['result']['info']['build_version'],
@@ -445,6 +451,7 @@ class Remote:
             return data
 
     def parse_account_info(self, data):
+        data = data['callback']
         if isinstance(data, dict) and data['callback']:
             data = json.loads(data['callback'])
             return {
@@ -459,6 +466,7 @@ class Remote:
         return account_data
 
     def parse_account_tums(self, data):
+        data = data['callback']
         data = json.loads(data)
         return {
             'ledger_index': data['result']['ledger_current_index'],
@@ -468,6 +476,7 @@ class Remote:
         }
 
     def parse_request_account_relations(self, data):
+        data = data['callback']
         data = json.loads(data)
         return {
             'account': data['result']['account'],
@@ -476,19 +485,20 @@ class Remote:
             'validated': data['result']['validated']
         }
 
-    # def parse_request_account_offers(self, data):
-    #     data = json.loads(data)
-    #     print(data)
-    #
-    #     result = {
-    #         'account': data['result']['account'],
-    #         'ledger_index': data['result']['ledger_current_index'],
-    #         'offers': data['result']['offers'],
-    #         'seq': data['seq']
-    #     }
-    #     if data['result']['offers']:
-    #
-    #     return result
+    def parse_request_account_offers(self, data):
+        data = data['callback']
+        if not isinstance(data, dict):
+            data = json.loads(data)
+        print(data)
+
+        result = {
+            'account': data['result']['account'],
+            'ledger_index': data['result']['ledger_current_index'],
+            'offers': data['result']['offers'],
+            'seq': data['seq']
+        }
+        if data['result']['offers']:
+            return result
 
     """
      * payment
@@ -549,7 +559,7 @@ class Remote:
         elif options['type'] == 'delegate':
             return self.__build_delegate_key_set(options, tx)
         elif options['type'] == 'signer':
-            return self.__build_signer_set() #not implement yet
+            return self.__build_signer_set()  # not implement yet
         tx.tx_json['msg'] = Warning('build account set should not go here')
         return tx
 
@@ -593,7 +603,7 @@ class Remote:
 
     def __prepare_flag(self, flag, SetClearFlags):
         result = None
-        if isinstance(flag, (int,float)):
+        if isinstance(flag, (int, float)):
             result = flag
         else:
             if flag in SetClearFlags:
@@ -776,6 +786,7 @@ class Remote:
      * @returns {Transaction}
      * 创建关系对象
     """
+
     def build_relation_tx(self, options):
         tx = Transaction(self, None)
         if not options:
@@ -794,7 +805,7 @@ class Remote:
 
     ##获得账号交易列表
     def request_account_tx(self, options):
-        data=[]
+        data = []
         request = Request(self, 'account_tx', None)
         if not isinstance(options, object):
             request.message['type'] = Exception('invalid options type')
@@ -821,8 +832,9 @@ class Remote:
         if options.__contains__('offset') and Number(options['offset']):
             request.message['offset'] = Number(options['offset'])
 
-        if options.__contains__('marker') and isinstance(options['marker'], 'object') and Number(options.marker['ledger']) != None and Number(
-                options['marker']['seq']) != None:
+        if options.__contains__('marker') and isinstance(options['marker'], 'object') and Number(
+                options.marker['ledger']) != None and Number(
+            options['marker']['seq']) != None:
             request.message['marker'] = options['marker']
 
         if options.__contains__('forward') and isinstance(options['forward'], 'boolean'):
@@ -830,11 +842,10 @@ class Remote:
 
         return request
 
-
     ##获得市场挂单列表
-    def request_order_book(self,options):
-        request = Request(self, 'book_offers',None)
-        if not isinstance(options,object):
+    def request_order_book(self, options):
+        request = Request(self, 'book_offers', None)
+        if not isinstance(options, object):
             request.message['type'] = Exception('invalid options type')
             return request
 
@@ -842,7 +853,7 @@ class Remote:
         if options.__contains__('taker_gets'):
             taker_gets = options['taker_gets']
         elif options.__contains__('pays'):
-            taker_gets=options['pays']
+            taker_gets = options['pays']
         if not utils.is_valid_amount0(taker_gets):
             request.message.taker_gets = Exception('invalid taker gets amount')
             return request
@@ -857,7 +868,7 @@ class Remote:
             return request
 
         if options.__contains__('limit'):
-            if isinstance(options['limit'],int):
+            if isinstance(options['limit'], int):
                 options['limit'] = int(options['limit'])
 
         request.message['taker_gets'] = taker_gets
@@ -870,5 +881,3 @@ class Remote:
         if options.__contains__('limit'):
             request.message['limit'] = options['limit']
         return request
-
-

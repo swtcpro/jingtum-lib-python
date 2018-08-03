@@ -34,7 +34,7 @@ class RemoteTest(unittest.TestCase):
     def test_ledger(self):
         remote = Remote()
         if not isinstance(remote.connect(None), Exception):
-            req = remote.request_ledger({'ledger_index': 8182274})
+            req = remote.request_ledger({'ledger_index': 8186589})
             result = remote.parse_ledger(req.submit())
             logger.info(result)
 
