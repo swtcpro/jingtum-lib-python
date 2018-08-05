@@ -7,6 +7,7 @@
 """
 from jingtum_python_baselib.keypairs import *
 
+
 class Wallet:
     def __init__(self, secret=None):
         try:
@@ -21,6 +22,7 @@ class Wallet:
      * generate one wallet
      * @returns {{secret: string, address: string}}
     """
+
     @staticmethod
     def generate():
         secret = get_secret()
@@ -34,7 +36,8 @@ class Wallet:
      * @param secret
      * @returns {*}
     """
-    #@staticmethod
+
+    # @staticmethod
     def from_secret(secret):
         try:
             keypairs = root_key_from_seed(parse_seed(secret))
@@ -49,6 +52,7 @@ class Wallet:
      * @param address
      * @returns {boolean}
     """
+
     @staticmethod
     def is_valid_address(address):
         try:
@@ -63,6 +67,7 @@ class Wallet:
      * @param secret
      * @returns {boolean}
     """
+
     @staticmethod
     def is_valid_secret(secret):
         try:
@@ -77,6 +82,7 @@ class Wallet:
      * @param message
      * @returns {*}
     """
+
     def sign(self, message):
         if not message or len(message) == 0:
             return None
@@ -90,6 +96,7 @@ class Wallet:
      * get wallet address
      * @returns {*}
     """
+
     def address(self):
         if not self.keypairs:
             return None
@@ -100,6 +107,7 @@ class Wallet:
      * get wallet secret
      * @returns {*}
     """
+
     def secret(self):
         if not self.secret:
             return None
