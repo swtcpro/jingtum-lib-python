@@ -21,11 +21,10 @@ from src.request import Request
 from src.server import Server, WebSocketServer
 from src.transaction import RelationTypes, AccountSetTypes, set_clear_flags, OfferTypes
 from src.transaction import Transaction
-from src.utils.cache import LRUCache
-from src.utils import utils
-from src import util
+from src.utils import LRUCache
+from src.utils import utils,process_tx
 
-LEDGER_OPTIONS = ['closed', 'header', 'current']
+#LEDGER_OPTIONS = ['closed', 'header', 'current']
 
 """
 * ---------------------- transaction request --------------------
@@ -394,9 +393,14 @@ class Remote:
             data = data['callback']
         else:
             return data
-        data = data['callback']
         data = json.loads(data)
-        return data['result']
+        if data['status'] == 'success':
+            return data['result']
+        else:
+            return {
+                'error': data['error'],
+                'msg': data['error_message']
+            }
 
     def parse_ledger(self, data):
         data = data['callback']
@@ -435,7 +439,7 @@ class Remote:
             data = data['result']
             results = []
             for tx in data['transactions']:
-                _tx = util.process_tx(tx, req.message['account'])
+                _tx = process_tx(tx, req.message['account'])
                 results.append(_tx)
             data['transactions'] = results
             return data
@@ -889,7 +893,7 @@ class Remote:
         elif options.__contains__('pays'):
             taker_gets = options['pays']
         if not utils.is_valid_amount0(taker_gets):
-            request.message.taker_gets = Exception('invalid taker gets amount')
+            request.message['taker_gets'] = Exception('invalid taker gets amount')
             return request
 
         # taker_pays = options['taker_pays'] or options['gets']
@@ -898,7 +902,7 @@ class Remote:
         elif options.__contains__('gets'):
             taker_pays = options['gets']
         if not utils.is_valid_amount0(taker_pays):
-            request.message.taker_pays = Exception('invalid taker pays amount')
+            request.message['taker_pays'] = Exception('invalid taker pays amount')
             return request
 
         if options.__contains__('limit'):

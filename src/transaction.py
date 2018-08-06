@@ -3,7 +3,7 @@ import json
 import math
 
 from src.config import Config
-from src.utils.utils import is_number, utils
+from src.utils import is_number, utils
 from jingtum_python_baselib.utils import *
 from jingtum_python_baselib.wallet import Wallet
 
@@ -137,7 +137,7 @@ class Transaction:
     """
     def set_secret(self, secret):
         if not Wallet.is_valid_secret(secret):
-            self.tx_json._secret = Exception('valid secret')
+            self.tx_json['_secret'] = Exception('invalid secret')
             return
         self._secret = secret
 
@@ -245,8 +245,11 @@ class Transaction:
             req = self.remote.request_account_info({'account': self.tx_json['Account'], 'type': 'trust'})
             result=req.submit()
             data = json.loads(result['callback'])
-            self.tx_json['Sequence'] = data['result']['account_data']['Sequence']
-            self.signing()
+            if data['status'] == 'success':
+                self.tx_json['Sequence'] = data['result']['account_data']['Sequence']
+                self.signing()
+            else:
+                return data
 
     def signing(self):
         from jingtum_python_baselib.serializer import Serializer

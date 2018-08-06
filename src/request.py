@@ -8,7 +8,7 @@
 """
 
 from eventemitter import EventEmitter
-from src.utils.utils import *
+from src.utils import *
 import json
 
 
@@ -48,7 +48,7 @@ class Request:
     def parse_ledger(self, data):
         if isinstance(data, dict) and data['callback']:
             data = json.loads(data['callback'])
-            if data['status']=='success':
+            if data['status'] == 'success':
                 return {
                     'account_data': data['result']['account_data'],
                     'ledger_hash': data['result']['ledger_hash'],

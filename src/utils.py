@@ -7,9 +7,12 @@
 """
 
 import re
+import collections
 
 from jingtum_python_baselib.wallet import Wallet
 from src.config import Config
+
+LEDGER_STATES = ['current', 'closed', 'validated']
 
 # Flags for ledger entries
 LEDGER_FLAGS = {
@@ -93,6 +96,83 @@ def is_valid_hash(hash):
         return False
     return re.match(re.compile(HASH__RE), hash)
 
+def is_number(s):
+    """
+    判断字符串是否是数字类型
+    :param s:
+    :return:
+    """
+    try:
+        float(s)
+        return True
+    except ValueError:
+        pass
+
+    try:
+        import unicodedata
+        unicodedata.numeric(s)
+        return True
+    except (TypeError, ValueError):
+        pass
+
+    return False
+
+class utils:
+    # input num may contain one '.' and one '-'
+    def is_num(amount):
+        return str(amount).replace('.', '', 1).replace('-', '', 1).isdigit()
+
+    def is_valid_currency(currency):
+        CURRENCY_RE = '^([a-zA-Z0-9]{3,6}|[A-F0-9]{40})$'
+        if (not currency or not isinstance(currency, str) or currency == ''):
+            return False
+        if re.search(CURRENCY_RE, currency):  # 判断字符串是否符合某一正则表达式
+            return True
+        else:
+            return False
+
+    """
+     * check {value: '', currency:'', issuer: ''}
+     * @param amount
+     * @returns {boolean}
+    """
+    def is_valid_amount(amount):
+        if (not amount):
+            return False
+        # check amount value
+        if ((not amount.__contains__('value') and amount['value'] != 0) or not utils.is_num(amount['value'])):
+            return False
+        # check amount currency
+        if (not amount.__contains__('currency') or not utils.is_valid_currency(amount['currency'])):
+            return False
+        # native currency issuer is empty
+        if (amount['currency'] == Config.currency and amount['issuer'] != ''):
+            return False
+        # non native currency issuer is not allowed to be empty
+        if (amount['currency'] != Config.currency
+                and not Wallet.is_valid_address(amount['issuer'])):
+            return False
+        return True
+
+    """
+     * check {currency: '', issuer: ''}
+     * @param amount
+     * @returns {boolean}
+    """
+    def is_valid_amount0(amount):
+        if (not amount):
+            return False
+        # check amount currency
+        if (not amount.__contains__('currency') or not utils.is_valid_currency(amount['currency'])):
+            return False
+        # native currency issuer is empty
+        if (amount['currency'] == Config.currency and amount['issuer']  != ''):
+            return False
+        # non native currency issuer is not allowed to be empty
+        if (amount['currency'] != Config.currency
+                and not Wallet.is_valid_address(amount['issuer'])):
+            return False
+        return True
 
 def process_affect_node(node):
     result = dict()
@@ -524,3 +604,25 @@ def process_tx(txn, account):
 
     # check cross gateway when parse more effect, specially trust related effects, now ignore it
     return result
+
+
+class LRUCache:
+    def __init__(self, capacity):
+        self.capacity = capacity
+        self.cache = collections.OrderedDict()
+
+    def get(self, key):
+        try:
+            value = self.cache.pop(key)
+            self.cache[key] = value
+            return value
+        except KeyError:
+            return -1
+
+    def set(self, key, value):
+        try:
+            self.cache.pop(key)
+        except KeyError:
+            if len(self.cache) >= self.capacity:
+                self.cache.popitem(last=False)
+        self.cache[key] = value
