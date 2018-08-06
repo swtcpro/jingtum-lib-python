@@ -33,8 +33,6 @@ from src.utils import utils,process_tx
  * @param amount
  * @returns {Amount}
 """
-
-
 def to_amount(amount):
     if (amount.__contains__('value') and int(float(amount['value'])) > 100000000000):
         return Exception('invalid amount: amount\'s maximum value is 100000000000')
@@ -46,9 +44,6 @@ def to_amount(amount):
 
 class Remote:
     def __init__(self, local_sign=False):
-        # self.opts = options
-        # if 'local_sign' in options:
-        #     self.local_sign = options['local_sign']
         # self.url = options['server']
         self.local_sign = local_sign
         self.server = WebSocketServer(self)
@@ -865,7 +860,8 @@ class Remote:
             request.message['ledger_index_max'] = -1
 
         if options.__contains__('limit') and isinstance(options['limit'],int):
-            request.message['limit'] = options['limit']
+            if options['limit'] > 0:  #limit must be positive
+                request.message['limit'] = options['limit']
 
         if options.__contains__('offset') and Number(options['offset']):
             request.message['offset'] = Number(options['offset'])

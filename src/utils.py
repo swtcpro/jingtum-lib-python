@@ -59,24 +59,9 @@ def hexToString(h):
     return ''.join(a)
 
 
-def stringToHex(s):
-    result = ''
-    for c in s:
-        b = ord(c)
-        # 转换成16进制的ASCII码
-        if b < 16:
-            result += '0' + hex(b).replace('0x', '')
-        else:
-            result += hex(b).replace('0x', '')
-
-    return result
-
-
-# print(bytes(hexToString('e7bb996a44556a716f445a4c687a78344443663670765369766a6b6a677452455359363263e694afe4bb98302e357377742e')).decode('utf8'))
-
 def is_valid_address(account):
     """
-    直接调用baselib中的isValidAddress方法，该方法由蔡正龙编写
+    直接调用baselib中的isValidAddress方法
     :param account:
     :return:
     """

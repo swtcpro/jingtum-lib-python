@@ -329,6 +329,18 @@ INVERSE_FIELDS_MAP = {
     'Amendments': [19, 3]
 }
 
+def stringToHex(s):
+    result = ''
+    for c in s:
+        b = ord(c)
+        # 转换成16进制的ASCII码
+        if b < 16:
+            result += '0' + hex(b).replace('0x', '')
+        else:
+            result += hex(b).replace('0x', '')
+
+    return result
+
 # Convert an integer value into an array of bytes.
 # The result is appended to the serialized object ('so').
 def convert_integer_to_bytearray(val, bytes):
@@ -474,14 +486,6 @@ def get_transaction_type(structure):
 
     print('Get tx type:', output)
     return output
-
-def convert_string_to_hex(inputstr):
-    out_str = ""
-    i = 0
-    while i < len(str):
-        out_str += (" 00" + str(int(ord(str[i]))))
-        i += 1
-    return out_str.upper()
 
 class SerializedType:
     def serialize_varint(so, val):
@@ -803,19 +807,19 @@ class STMemo(SerializedType):
                 value = val[key]
                 if key == 'MemoType' or key == 'MemoFormat':
                     # MemoType and MemoFormat are always ASCII strings
-                    value = convert_string_to_hex(value)
+                    value = stringToHex(value)
                     # MemoData can be a JSON object, otherwise it's a string
                 elif key == 'MemoData':
                     if not isinstance(value,str):
                         if (isJson):
                             try:
-                                value = convert_string_to_hex(json.stringify(value))
+                                value = stringToHex(json.stringify(value))
                             except Exception:
                                 raise Exception('MemoFormat json with invalid JSON in MemoData field')
                         else:
                             raise Exception('MemoData can only be a JSON object with a valid json MemoFormat')
                     elif isinstance(value,str):
-                        value = convert_string_to_hex(value)
+                        value = stringToHex(value)
                 serialize(so, key, value)
                 i += 1
 
