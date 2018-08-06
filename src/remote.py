@@ -354,9 +354,7 @@ class Remote:
 
         if options['type'] == 'trust':
             return self.request_account('account_lines', options, req)
-        elif options['type'] == 'authorize':
-            return
-        elif options['type'] == 'freeze':
+        elif options['type'] == 'authorize' or options['type'] == 'freeze':
             return self.request_account('account_relation', options, req)
 
         req.message['msg'] = Exception('relation should not go here')
@@ -375,24 +373,6 @@ class Remote:
 
         return self.request_account('account_offers', options, req)
 
-    def request_account_tx(self, options):
-        """
-        查询账户交易
-        :param options: account(required): the query account
-         ledger(option): specify ledger, ledger can be:
-         ledger_index=xxx, ledger_hash=xxx, or ledger=closed|current|validated
-         limit limit output tx record
-         ledger_min default 0, ledger_max default -1
-         marker: {ledger:xxx, seq: x}
-         descending, if returns recently tx records
-        :return:
-        """
-        req = Request(self, 'account_tx', None)
-        if not isinstance(options, dict):
-            req.message['type'] = Exception('invalid options type')
-            return req
-        return req
-
     def parse_payment(self, data):
         if isinstance(data, dict) and data['callback']:
             data = json.loads(data['callback'])
@@ -410,6 +390,10 @@ class Remote:
             return data
 
     def parse_transaction(self, data):
+        if isinstance(data, dict) and data['callback']:
+            data = data['callback']
+        else:
+            return data
         data = data['callback']
         data = json.loads(data)
         return data['result']
@@ -418,7 +402,13 @@ class Remote:
         data = data['callback']
         if not isinstance(data, dict):
             data = json.loads(data)
-        return data['result']['ledger']
+        if data['status'] == 'success':
+            return data['result']['ledger']
+        else:
+            return {
+                'error': data['error'],
+                'msg': data['error_message']
+            }
 
     def parse_ledger_closed(self, data):
         data = data['callback']
@@ -439,46 +429,18 @@ class Remote:
         }
 
     @staticmethod
-    def parse_account_tx_info(data, req, options):
+    def parse_account_tx_info(data, req):
         if isinstance(data, dict) and data['callback']:
             data = json.loads(data['callback'])
             data = data['result']
             results = []
             for tx in data['transactions']:
-                _tx = util.process_tx(tx, options['account'])
+                _tx = util.process_tx(tx, req.message['account'])
                 results.append(_tx)
             data['transactions'] = results
             return data
-        if not isinstance(options, dict):
-            req.message['type'] = Exception('invalid options type')
-            return req
-        if not util.is_valid_address(options['account']):
-            req.message['account'] = Exception('account parameter is invalid')
-            return req
-        req.message['account'] = options['account']
-
-        if options['ledger_min'] and int(options['ledger_min']):
-            req.message['ledger_index_min'] = int(options['ledger_min'])
         else:
-            req.message['ledger_index_min'] = 0
-
-        if options['ledger_max'] and int(options['ledger_max']):
-            req.message['ledger_index_max'] = int(options['ledger_max'])
-        else:
-            req.message['ledger_index_max'] = -1
-
-        if options['limit'] and int(options['limit']):
-            req.message['limit'] = int(options['limit'])
-
-        if options['offset'] and int(options['offset']):
-            req.message['offset'] = int(options['offset'])
-
-        if isinstance(options['marker'], object) and int(options['marker']['ledger']) and int(options['marker']['seq']):
-            req.message['marker'] = options['marker']
-
-        if options['forward'] and options['forward'] == 'boolean':
-            req.message['forward'] = options['forward']
-        return req
+            return data
 
     # if data['status'] == 'success':
     #         return {
@@ -517,11 +479,17 @@ class Remote:
                 'msg': data['error_message']
             }
         data = json.loads(data)
-        account_data = {
-            'account_data': data['result']['account_data'],
-            'ledger_index': data['result']['ledger_current_index']
-        }
-        return account_data
+        if data['status'] == 'success':
+            account_data = {
+                'account_data': data['result']['account_data'],
+                'ledger_index': data['result']['ledger_current_index']
+            }
+            return account_data
+        else:
+            return {
+                'error': data['error'],
+                'msg': data['error_message']
+            }
 
     def parse_account_tums(self, data):
         data = data['callback']
@@ -536,26 +504,35 @@ class Remote:
     def parse_request_account_relations(self, data):
         data = data['callback']
         data = json.loads(data)
-        return {
-            'account': data['result']['account'],
-            'ledger_index': data['result']['ledger_current_index'],
-            'lines': data['result']['lines'],
-            'validated': data['result']['validated']
-        }
+        if data['status'] == 'success':
+            return {
+                'account': data['result']['account'],
+                'ledger_index': data['result']['ledger_current_index'],
+                'lines': data['result']['lines'],
+                'validated': data['result']['validated']
+            }
+        else:
+            return {
+                'error': data['error'],
+                'msg': data['error_message']
+            }
 
     def parse_request_account_offers(self, data):
         data = data['callback']
         if not isinstance(data, dict):
             data = json.loads(data)
-        # if data['result']['offers']:
-
-        result = {
-            'account': data['result']['account'],
-            'ledger_index': data['result']['ledger_current_index'],
-            'offers': data['result']['offers']
-            #     'seq': data['seq']
-        }
-        return result
+        if data['status'] == 'success':
+            return {
+                'account': data['result']['account'],
+                'ledger_index': data['result']['ledger_current_index'],
+                'offers': data['result']['offers']
+                #     'seq': data['seq']
+            }
+        else:
+            return {
+                'error': data['error'],
+                'msg': data['error_message']
+            }
 
     """
      * payment
@@ -883,8 +860,8 @@ class Remote:
         else:
             request.message['ledger_index_max'] = -1
 
-        if options.__contains__('limit') and Number(options['limit']):
-            request.message['limit'] = Number(options['limit'])
+        if options.__contains__('limit') and isinstance(options['limit'],int):
+            request.message['limit'] = options['limit']
 
         if options.__contains__('offset') and Number(options['offset']):
             request.message['offset'] = Number(options['offset'])
