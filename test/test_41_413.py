@@ -11,10 +11,6 @@ from src.logger import logger
 from src.remote import Remote
 
 
-# import random
-# from jingtum_python_baselib.src import keypairs
-
-
 class RemoteTest(unittest.TestCase):
 
     def test_server_info(self):
@@ -34,8 +30,19 @@ class RemoteTest(unittest.TestCase):
     def test_ledger(self):
         remote = Remote()
         if not isinstance(remote.connect(None), Exception):
-            req = remote.request_ledger({'ledger_index': 8186589})
-            result = remote.parse_ledger(req.submit())
+            req = remote.request_ledger({'ledger_index': '943501'})
+            temp = req.submit()
+            result = remote.parse_ledger(temp, req)
+            logger.info(result)
+
+            req = remote.request_ledger({'ledger_hash': '944960C0816D716FE962AABED9F2FF8B9EF4584AF7DA16EFBB3F461A5A720969'})
+            temp = req.submit()
+            result = remote.parse_ledger(temp, req)
+            logger.info(result)
+
+            req = remote.request_ledger({'transactions': True})
+            temp = req.submit()
+            result = remote.parse_ledger(temp, req)
             logger.info(result)
 
     def test_transaction(self):
@@ -88,7 +95,7 @@ class RemoteTest(unittest.TestCase):
         remote = Remote()
         if not isinstance(remote.connect(None), Exception):
             req = remote.request_account_tx({'account': 'jsMwaJ7EA4y7QgdvQzaD2CqzQQN4v7vLFK',
-                                             'limit': 1})
+                                             'limit': 9})
             temp = req.submit()
             # logger.info(temp)
             result = remote.parse_account_tx_info(temp, req)
