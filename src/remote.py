@@ -22,7 +22,7 @@ from src.server import Server, WebSocketServer
 from src.transaction import RelationTypes, AccountSetTypes, set_clear_flags, OfferTypes
 from src.transaction import Transaction
 from src.utils import LRUCache
-from src.utils import utils,process_tx
+from src.utils import utils, process_tx, is_number
 
 #LEDGER_OPTIONS = ['closed', 'header', 'current']
 
@@ -226,9 +226,9 @@ class Remote:
         if not isinstance(options, dict):
             req.message['type'] = Exception('invalid options type')
             return req
-        if options['ledger_index'] and isinstance(options['ledger_index'], int):
-            req.message['ledger_index'] = options['ledger_index']
-        elif options['ledger_hash'] and is_valid_hash(options['ledger_hash']):
+        if options.__contains__('ledger_index') and is_number(options['ledger_index']):
+            req.message['ledger_index'] = int(options['ledger_index'])
+        elif options.__contains__('ledger_hash') and is_valid_hash(options['ledger_hash']):
             req.message['ledger_hash'] = options['ledger_hash']
         if 'full' in options.keys() and isinstance(options['full'], bool):
             req.message['full'] = options['full']
@@ -397,12 +397,28 @@ class Remote:
                 'msg': data['error_message']
             }
 
-    def parse_ledger(self, data):
+    @staticmethod
+    def parse_ledger(data, req):
         data = data['callback']
         if not isinstance(data, dict):
             data = json.loads(data)
         if data['status'] == 'success':
-            return data['result']['ledger']
+            if data['result'].__contains__('ledger'):
+                ledger = data['result']['ledger']
+            else:
+                ledger = data['result']['closed']['ledger']
+
+            if req.message.__contains__('transactions') and req.message['transactions']:
+                return ledger
+            else:
+                return {
+                    'accepted': ledger['accepted'],
+                    'ledger_hash': ledger['hash'],
+                    'ledger_index': ledger['ledger_index'],
+                    'parent_hash': ledger['parent_hash'],
+                    'close_time': ledger['close_time_human'],
+                    'total_coins': ledger['total_coins']
+                }
         else:
             return {
                 'error': data['error'],
@@ -545,7 +561,7 @@ class Remote:
 
     def build_payment_tx(self, options):
         tx = Transaction(self, None)
-        if not options:  # typeof options没有转换
+        if not options:
             tx.tx_json['obj'] = Exception('invalid options type')
             return tx
         if options.__contains__('source'):
@@ -615,7 +631,7 @@ class Remote:
             clear_flag = None
         if not Wallet.is_valid_address(src):
             tx.tx_json['src'] = Exception('invalid source address')
-            return tx;
+            return tx
 
         tx.tx_json['TransactionType'] = 'AccountSet'
         tx.tx_json['Account'] = src
