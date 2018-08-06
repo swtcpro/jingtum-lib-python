@@ -14,7 +14,7 @@ class RequestTest(unittest.TestCase):
         remote = Remote(local_sign=True)
 
         if not isinstance(remote.connect(None), Exception):
-            req = remote.request_account_info({'account': 'j9fE48ebcvwnKSGnPdtN6jGNM9yVBMVaH8'})
+            req = remote.request_account_info({'account': 'j9fE48ebcvwnKSGnPdtN6jGNM9yVBMVaH8000'})
             req.select_ledger(838796)
             result =req.submit()
             #result = remote.parse_payment(s)

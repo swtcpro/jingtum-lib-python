@@ -25,9 +25,8 @@ class RemoteTest(unittest.TestCase):
             }
             tx = remote.build_payment_tx(options)
             tx.set_secret('ssTkYQLLYiZs7Sosp12sB43TocUbd')
-            #tx.addMemo('给jDUjqoDZLhzx4DCf6pvSivjkjgtRESY62c支付0.5swt.')  # 可选
-            #tx.addMemo('给')  # 可选
-            #tx.addMemo('123')
+            #tx.add_memo('给jDUjqoDZLhzx4DCf6pvSivjkjgtRESY62c支付0.5swt.')  # 可选
+            #tx.add_memo('给')  # 可选
             s=tx.submit()
             result=remote.parse_payment(s)
             print('test_create_pay_object result is', result)

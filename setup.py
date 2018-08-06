@@ -4,11 +4,11 @@
 from setuptools import setup
 
 setup(
-     name="jingtum-lib",
-     version="1.0.1",
+     name="jingtum_libs",
+     version="1.0.3",
      author="wuhan python dev team",
      author_email="caizl2002@hotmail.com",
-     description=("jingtum-lib to be used for interacting with jingtum blockchain network"),
+     description=("jingtum_lib to be used for interacting with jingtum blockchain network"),
      license="GPLv3",
      keywords="jingtum",
      url="https://github.com/swtcpro/jingtum-lib-python",
@@ -24,7 +24,7 @@ setup(
          'websocket-client >= 0.47.0'
      ],
 
-     long_description=open('README.md').read,
+     #long_description=open('README.md').read,
      classifiers=[  # 程序的所属分类列表
          "Development Status :: 3 - Alpha",
          "Topic :: Utilities",
