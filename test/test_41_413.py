@@ -25,7 +25,7 @@ class RemoteTest(unittest.TestCase):
             logger.info(result)
 
     def test_ledger_closed(self):
-        remote = Remote()
+        remote = Remote(local_sign=True)
         if not isinstance(remote.connect(None), Exception):
             req = remote.request_ledger_closed()
             result = remote.parse_ledger_closed(req.submit())
@@ -62,7 +62,18 @@ class RemoteTest(unittest.TestCase):
     def test_request_account_relations(self):
         remote = Remote()
         if not isinstance(remote.connect(None), Exception):
-            req = remote.request_account_relations({'account': 'jEkffY8XtkEtkUKyYQT1Fv7MDp3grAtwdH', 'type': 'trust'})
+            req = remote.request_account_relations({'account': 'jEkffY8XtkEtkUKyYQT1Fv7MDp3grAtwdH',
+                                                    'type': 'trust'})
+            result = remote.parse_request_account_relations(req.submit())
+            logger.info(result)
+
+            req = remote.request_account_relations({'account': 'jEkffY8XtkEtkUKyYQT1Fv7MDp3grAtwdH',
+                                                    'type': 'authorize'})
+            result = remote.parse_request_account_relations(req.submit())
+            logger.info(result)
+
+            req = remote.request_account_relations({'account': 'jEkffY8XtkEtkUKyYQT1Fv7MDp3grAtwdH',
+                                                    'type': 'freeze'})
             result = remote.parse_request_account_relations(req.submit())
             logger.info(result)
 
@@ -73,17 +84,14 @@ class RemoteTest(unittest.TestCase):
             result = remote.parse_request_account_offers(req.submit())
             logger.info(result)
 
-    # def test_generateSeed(self):
-    #     randBytes = ''.join(random.choice(keypairs.alphabet) for _ in range(16))  # 'Buffer'+16个字节的随机数
-    #     return keypairs.__encode(33, randBytes)
-
     def test_request_account_tx(self):
         remote = Remote()
         if not isinstance(remote.connect(None), Exception):
-            req = remote.request_account_tx({'account': 'jsMwaJ7EA4y7QgdvQzaD2CqzQQN4v7vLFK'})
+            req = remote.request_account_tx({'account': 'jsMwaJ7EA4y7QgdvQzaD2CqzQQN4v7vLFK',
+                                             'limit': 1})
             temp = req.submit()
             # logger.info(temp)
-            result = remote.parse_account_tx_info(temp, req, {'account': 'jsMwaJ7EA4y7QgdvQzaD2CqzQQN4v7vLFK'})
+            result = remote.parse_account_tx_info(temp, req)
             logger.info(result)
 
 
