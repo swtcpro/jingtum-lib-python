@@ -10,7 +10,7 @@
 """
 from eventemitter import EventEmitter
 from jingtum_python_baselib.wallet import Wallet
-from src.utils import affected_accounts
+#from src.utils import affected_accounts
 
 
 class Account:

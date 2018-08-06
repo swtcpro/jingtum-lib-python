@@ -6,11 +6,11 @@
  * Time: 16:44
  * Description: request类
 """
-
-from eventemitter import EventEmitter
-from src.utils import *
 import json
 
+from eventemitter import EventEmitter
+
+from src.utils import *
 
 class Request:
     def __init__(self, remote, command, filter):
@@ -44,23 +44,3 @@ class Request:
         else:
             self.message['ledger_index'] = 'validated'
         return self
-
-    def parse_ledger(self, data):
-        if isinstance(data, dict) and data['callback']:
-            data = json.loads(data['callback'])
-            if data['status'] == 'success':
-                return {
-                    'account_data': data['result']['account_data'],
-                    'ledger_hash': data['result']['ledger_hash'],
-                    'ledger_index': data['result']['ledger_index'],
-                    'validated': data['result']['validated']
-                }
-            else:
-                return {
-                    'error': data['error'],
-                    'error_code': data['error_code'],
-                    'error_message': data['error_message']
-                }
-        else:
-            return data
-
