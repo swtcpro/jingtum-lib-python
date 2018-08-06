@@ -125,9 +125,17 @@ class Transaction:
         return self
 
     def get_account(self):
+        for key in self.tx_json:
+            if isinstance(self.tx_json[key], Exception):
+                return self.tx_json[key]
+
         return self.tx_json['Account']
 
     def get_transaction_type(self):
+        for key in self.tx_json:
+            if isinstance(self.tx_json[key], Exception):
+                return self.tx_json[key]
+
         return self.tx_json['TransactionType']
 
     """
