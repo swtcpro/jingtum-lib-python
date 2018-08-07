@@ -12,6 +12,14 @@ from src.remote import Remote
 
 
 class RemoteTest(unittest.TestCase):
+    def test_conn(self):
+        remote = Remote()
+        result = remote.connect(None)
+
+    def test_conn_close(self):
+        remote = Remote()
+        if not isinstance(remote.connect(None), Exception):
+            req = remote.disconnect()
 
     def test_server_info(self):
         remote = Remote()
@@ -30,12 +38,12 @@ class RemoteTest(unittest.TestCase):
     def test_ledger(self):
         remote = Remote()
         if not isinstance(remote.connect(None), Exception):
-            req = remote.request_ledger({'ledger_index': '943501'})
+            req = remote.request_ledger({'ledger_index': '943501','transactions': True})
             temp = req.submit()
             result = remote.parse_ledger(temp, req)
             logger.info(result)
 
-            req = remote.request_ledger({'ledger_hash': '944960C0816D716FE962AABED9F2FF8B9EF4584AF7DA16EFBB3F461A5A720969'})
+            req = remote.request_ledger({'ledger_hash': '1F91E2FBCF7BCF26D02024657460FE3718F701D2497F12F54C24D56521912E61'})
             temp = req.submit()
             result = remote.parse_ledger(temp, req)
             logger.info(result)
@@ -97,10 +105,17 @@ class RemoteTest(unittest.TestCase):
             req = remote.request_account_tx({'account': 'jsMwaJ7EA4y7QgdvQzaD2CqzQQN4v7vLFK',
                                              'limit': 9})
             temp = req.submit()
-            # logger.info(temp)
             result = remote.parse_account_tx_info(temp, req)
             logger.info(result)
 
+    def test_request_orderbook(self):
+        remote = Remote(local_sign=True)
+        if not isinstance(remote.connect(None), Exception):
+            req = remote.request_order_book({'gets': {'currency': 'SWT', 'issuer': ''},
+                  'pays': {'currency': 'CNY', 'issuer': 'jBciDE8Q3uJjf111VeiUNM775AMKHEbBLS'}})
+            temp = req.submit()
+            result = remote.parse_orderbook_info(temp)
+            logger.info(result)
 
 if __name__ == '__main__':
     unittest.main()
