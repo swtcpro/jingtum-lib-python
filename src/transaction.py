@@ -87,13 +87,13 @@ def safe_int(num):
 
 
 def Number(num):
-    if (not is_number(num)):
+    if not is_number(num):
         return float('nan')
-    if (isinstance(num, bool) and num):
+    if isinstance(num, bool) and num:
         return 1
-    if (isinstance(num, bool) and not num):
+    if isinstance(num, bool) and not num:
         return 0
-    if (isinstance(num, (int, float))):
+    if isinstance(num, (int, float)):
         return num
     if '.' in num:
         return float(num)
@@ -102,10 +102,10 @@ def Number(num):
 
 
 def max_amount(amount):
-    if (isinstance(amount, str) and is_number(amount)):
+    if isinstance(amount, str) and is_number(amount):
         _amount = safe_int(Number(amount) * (1.0001))
         return str(_amount)
-    if (isinstance(amount, dict) and utils.is_valid_amount(amount)):
+    if isinstance(amount, dict) and utils.is_valid_amount(amount):
         _value = Number(amount['value']) * (1.0001)
         amount['value'] = str(_value)
         return amount
@@ -154,10 +154,10 @@ class Transaction:
     * @param memo
     """
     def add_memo(self, memo):
-        if (not isinstance(memo, str)):
+        if not isinstance(memo, str):
             self.tx_json['memo_type'] = TypeError('invalid memo type')
             return self
-        if (len(memo) > 2048):
+        if len(memo) > 2048:
             self.tx_json['memo_len'] = TypeError('memo is too long')
             return self
         _memo = {}
@@ -169,10 +169,10 @@ class Transaction:
 
     def set_fee(self, fee):
         _fee = safe_int(fee)
-        if (math.isnan(_fee)):
+        if math.isnan(_fee):
             self.tx_json['Fee'] = TypeError('invalid fee')
             return self
-        if (fee < 10):
+        if fee < 10:
             self.tx_json['Fee'] = TypeError('fee is too low')
             return self
         self.tx_json['Fee'] = _fee
@@ -186,11 +186,11 @@ class Transaction:
     """
     def set_path(self, key):
         # sha1 string
-        if (not isinstance(key, str) and len(key) != 40):
+        if not isinstance(key, str) and len(key) != 40:
             return Exception('invalid path key')
 
         item = self.remote._paths.get(key)
-        if (item is not None):
+        if item is not None:
             return Exception('non exists path key')
 
         if (item['path'] == '[]'):  # 沒有支付路径，不需要传下面的参数
@@ -205,7 +205,7 @@ class Transaction:
     * @param amount
     """
     def set_send_max(self, amount):
-        if (utils.is_valid_amount(amount) is not None):
+        if utils.is_valid_amount(amount) is not None:
             return Exception('invalid send max amount')
         self.tx_json['SendMax'] = amount
 
@@ -214,9 +214,8 @@ class Transaction:
     * between 0 and 1, type is number
     * @param rate
     """
-
     def set_transfer_rate(self, rate):
-        if (not isinstance(rate, (int, float)) or rate < 0 or rate > 1):
+        if not isinstance(rate, (int, float)) or rate < 0 or rate > 1:
             return Exception('invalid transfer rate')
         self.tx_json['TransferRate'] = (rate + 1) * 1e9
 
@@ -225,7 +224,7 @@ class Transaction:
     *
      """
     def set_flags(self, flags):
-        if (flags is None):
+        if flags is None:
             return
 
         if isinstance(flags, (int, float)):
@@ -237,7 +236,7 @@ class Transaction:
             transaction_flags = transaction_global_flags[index]
         else:
             transaction_flags = {}
-        if (isinstance(flags, list)):
+        if isinstance(flags, list):
             flag_set = flags
         else:
             flag_set = [flags]
@@ -257,14 +256,14 @@ class Transaction:
                 self.tx_json['Sequence'] = data['result']['account_data']['Sequence']
                 self.signing()
             else:
-                return data
+                self.tx_json['_secret'] = Exception(data['error_message'])
 
     def signing(self):
         from jingtum_python_baselib.serializer import Serializer
         self.tx_json['Fee'] = self.tx_json['Fee'] / 1000000
 
         # payment
-        if (self.tx_json.__contains__('Amount') and '{' not in json.dumps(self.tx_json['Amount'])):
+        if self.tx_json.__contains__('Amount') and '{' not in json.dumps(self.tx_json['Amount']):
             # 基础货币
             self.tx_json['Amount'] = Number(self.tx_json['Amount']) / 1000000
 
@@ -275,15 +274,15 @@ class Transaction:
                 memo_list[i]["Memo"]["MemoData"] = hex_to_str(memo_list[i]["Memo"]["MemoData"])
                 i += 1
 
-        if (self.tx_json.__contains__('SendMax') and isinstance(self.tx_json['SendMax'], str)):
+        if self.tx_json.__contains__('SendMax') and isinstance(self.tx_json['SendMax'], str):
             self.tx_json['SendMax'] = Number(self.tx_json['SendMax']) / 1000000
 
         # order
-        if (self.tx_json.__contains__('TakerPays') and '{' not in json.dumps(self.tx_json['TakerPays'])):
+        if self.tx_json.__contains__('TakerPays') and '{' not in json.dumps(self.tx_json['TakerPays']):
             # 基础货币
             self.tx_json['TakerPays'] = Number(self.tx_json['TakerPays']) / 1000000
 
-        if (self.tx_json.__contains__('TakerGets') and '{' not in json.dumps(self.tx_json['TakerGets'])):
+        if self.tx_json.__contains__('TakerGets') and '{' not in json.dumps(self.tx_json['TakerGets']):
             # 基础货币
             self.tx_json['TakerGets'] = Number(self.tx_json['TakerGets']) / 1000000
 
@@ -305,6 +304,9 @@ class Transaction:
         data = {}
         if self.remote.local_sign:  # 签名之后传给底层
             self.sign()
+            for key in self.tx_json:
+                if isinstance(self.tx_json[key], Exception):
+                    return self.tx_json[key]
             data = {
                 'tx_blob': self.tx_json['blob']
             }
