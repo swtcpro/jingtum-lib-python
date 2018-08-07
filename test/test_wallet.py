@@ -7,22 +7,24 @@
 """
 import unittest
 
-#from src.logger import logger
+from src.logger import logger
 from jingtum_python_baselib.wallet import Wallet
+
 
 class TestWallet(unittest.TestCase):
     def test_is_valid_address(self):
         self.assertTrue(Wallet.is_valid_address('jfdLqEWhfYje92gEaWixVWsYKjK5C6bMoi'))
 
-    def test_from_secret(self):
-        #logger.info
-        s=Wallet.from_secret('ss2A7yahPhoduQjmG7z9BHu3uReDk')
-        print(s)
+    @staticmethod
+    def test_from_secret():
+        result = Wallet.from_secret('ss2A7yahPhoduQjmG7z9BHu3uReDk')
+        logger.info(result)
 
-    def test_generate(self):
-        #logger.info(
-        s=Wallet.generate()
-        print(s)
+    @staticmethod
+    def test_generate():
+        result = Wallet.generate()
+        logger.info(result)
 
 if __name__ == '__main__':
     unittest.main()
+

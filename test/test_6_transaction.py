@@ -8,9 +8,12 @@
 import unittest
 
 from src.remote import Remote
+from src.logger import logger
+
 
 class TransactionTest(unittest.TestCase):
-    def test_get_account(self):
+    @staticmethod
+    def test_get_account():
         remote = Remote()
 
         options = {
@@ -20,9 +23,10 @@ class TransactionTest(unittest.TestCase):
         if not isinstance(remote.connect(None), Exception):
             req = remote.build_offer_cancel_tx(options)
             result = req.get_account()
-            print('test_get_account result is', result)
+            logger.info(result)
 
-    def test_get_transaction_type(self):
+    @staticmethod
+    def test_get_transaction_type():
         remote = Remote()
         options = {
             'account': 'jB7rxgh43ncbTX4WeMoeadiGMfmfqY2xLZ',
@@ -32,7 +36,7 @@ class TransactionTest(unittest.TestCase):
         if not isinstance(remote.connect(None), Exception):
             req = remote.build_offer_cancel_tx(options)
             result = req.get_transaction_type()
-            print('test get_transaction_type result is', result)
+            logger.info(result)
 
 
 if __name__ == '__main__':

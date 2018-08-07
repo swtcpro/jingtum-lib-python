@@ -6,13 +6,15 @@
  * Description: ²âÊÔÄ£¿é
 """
 import unittest
-from numbers import Number
 
-#from src.logger import logger
+
+from src.logger import logger
 from src.remote import Remote
 
+
 class OfferTest(unittest.TestCase):
-    def test_build_offer_create(self):
+    @staticmethod
+    def test_build_offer_create():
         remote = Remote(local_sign=True)
         options = {
             'type': 'Sell',
@@ -32,11 +34,12 @@ class OfferTest(unittest.TestCase):
         if not isinstance(remote.connect(None), Exception):
             tx = remote.build_offer_create_tx(options)
             tx.set_secret('sn37nYrQ6KPJvTFmaBYokS3FjXUWd')
-            s=tx.submit()
-            result=remote.parse_payment(s)
-            print('test_build_offer_create result is', result)
+            s = tx.submit()
+            result = remote.parse_payment(s)
+            logger.info(result)
 
-    def test_build_offer_cancel(self):
+    @staticmethod
+    def test_build_offer_cancel():
         remote = Remote(local_sign=True)
         options = {
             'sequence': 1777,
@@ -46,9 +49,9 @@ class OfferTest(unittest.TestCase):
         if not isinstance(remote.connect(None), Exception):
             tx = remote.build_offer_cancel_tx(options)
             tx.set_secret('sn37nYrQ6KPJvTFmaBYokS3FjXUWd')
-            s=tx.submit()
+            s = tx.submit()
             result=remote.parse_payment(s)
-            print('test_build_offer_cancel result is', result)
+            logger.info(result)
 
 
 if __name__ == '__main__':
