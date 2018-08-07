@@ -24,7 +24,7 @@ from src.transaction import Transaction
 from src.utils import LRUCache
 from src.utils import utils, process_tx, is_number
 
-#LEDGER_OPTIONS = ['closed', 'header', 'current']
+# LEDGER_OPTIONS = ['closed', 'header', 'current']
 
 """
 * ---------------------- transaction request --------------------
@@ -33,6 +33,8 @@ from src.utils import utils, process_tx, is_number
  * @param amount
  * @returns {Amount}
 """
+
+
 def to_amount(amount):
     if (amount.__contains__('value') and int(float(amount['value'])) > 100000000000):
         return Exception('invalid amount: amount\'s maximum value is 100000000000')
@@ -69,6 +71,11 @@ class Remote:
         :return:
         """
         return self.server.connected
+
+    def disconnect(self):
+        self.server.ws.close()
+        self.server.connected = False
+        self.server.opened = False
 
     def handle_message(self, data):
         # 此处可能要处理异常情况
@@ -875,8 +882,8 @@ class Remote:
         else:
             request.message['ledger_index_max'] = -1
 
-        if options.__contains__('limit') and isinstance(options['limit'],int):
-            if options['limit'] > 0:  #limit must be positive
+        if options.__contains__('limit') and isinstance(options['limit'], int):
+            if options['limit'] > 0:  # limit must be positive
                 request.message['limit'] = options['limit']
 
         if options.__contains__('offset') and Number(options['offset']):

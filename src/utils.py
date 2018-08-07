@@ -6,8 +6,8 @@
  * Description: 
 """
 
-import re
 import collections
+import re
 
 from jingtum_python_baselib.wallet import Wallet
 from src.config import Config
@@ -81,6 +81,7 @@ def is_valid_hash(hash):
         return False
     return re.match(re.compile(HASH__RE), hash)
 
+
 def is_number(s):
     """
     判断字符串是否是数字类型
@@ -102,6 +103,7 @@ def is_number(s):
 
     return False
 
+
 class utils:
     # input num may contain one '.' and one '-'
     def is_num(amount):
@@ -121,6 +123,7 @@ class utils:
      * @param amount
      * @returns {boolean}
     """
+
     def is_valid_amount(amount):
         if (not amount):
             return False
@@ -144,6 +147,7 @@ class utils:
      * @param amount
      * @returns {boolean}
     """
+
     def is_valid_amount0(amount):
         if (not amount):
             return False
@@ -151,13 +155,14 @@ class utils:
         if (not amount.__contains__('currency') or not utils.is_valid_currency(amount['currency'])):
             return False
         # native currency issuer is empty
-        if (amount['currency'] == Config.currency and amount['issuer']  != ''):
+        if (amount['currency'] == Config.currency and amount['issuer'] != ''):
             return False
         # non native currency issuer is not allowed to be empty
         if (amount['currency'] != Config.currency
                 and not Wallet.is_valid_address(amount['issuer'])):
             return False
         return True
+
 
 def process_affect_node(node):
     result = dict()
@@ -219,7 +224,8 @@ def affected_accounts(tx):
 
 
 def txn_type(tx, account):
-    if tx['Account'] == account or (tx.__contains__('Target') and tx['Target'] == account) or (tx['Destination'] and tx['Destination'] == account) \
+    if tx['Account'] == account or (tx.__contains__('Target') and tx['Target'] == account) or (
+            tx['Destination'] and tx['Destination'] == account) \
             or (tx['LimitAmount'] and tx['LimitAmount']['issuer'] == account):
         if tx['TransactionType'] == 'Payment':
             if tx['Account'] == account and tx['Destination'] == account:

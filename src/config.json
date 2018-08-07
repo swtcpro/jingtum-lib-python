@@ -16,7 +16,7 @@
   },
   "dev": {
     "api_address": "https://tapi.jingtum.com:443", 
-    "web_socket_address": "ws://123.57.219.57:5020",
+    "web_socket_address": "wss://c05.jingtum.com:5020",
     "api_version": "v1",
     "ttong_address": "https://tfingate.jingtum.com/v1/business/node"
   },
