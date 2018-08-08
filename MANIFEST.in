@@ -1,0 +1,2 @@
+include jingtum_python_lib\config.json
+exclude test\*
