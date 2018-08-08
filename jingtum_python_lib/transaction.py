@@ -2,8 +2,8 @@
 import json
 import math
 
-from src.config import Config
-from src.utils import is_number, utils
+from jingtum_python_lib.config import Config
+from jingtum_python_lib.utils import is_number, utils
 from jingtum_python_baselib.utils import *
 from jingtum_python_baselib.wallet import Wallet
 

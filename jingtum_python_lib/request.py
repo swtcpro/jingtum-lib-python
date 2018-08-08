@@ -10,7 +10,7 @@ import json
 
 from eventemitter import EventEmitter
 
-from src.utils import *
+from jingtum_python_lib.utils import *
 
 class Request:
     def __init__(self, remote, command, filter):

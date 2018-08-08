@@ -16,13 +16,13 @@ from eventemitter import EventEmitter
 
 from jingtum_python_baselib.utils import *
 from jingtum_python_baselib.wallet import Wallet
-from src.config import Config
-from src.request import Request
-from src.server import Server, WebSocketServer
-from src.transaction import RelationTypes, AccountSetTypes, set_clear_flags, OfferTypes
-from src.transaction import Transaction
-from src.utils import LRUCache
-from src.utils import utils, process_tx, is_number
+from jingtum_python_lib.config import Config
+from jingtum_python_lib.request import Request
+from jingtum_python_lib.server import Server, WebSocketServer
+from jingtum_python_lib.transaction import RelationTypes, AccountSetTypes, set_clear_flags, OfferTypes
+from jingtum_python_lib.transaction import Transaction
+from jingtum_python_lib.utils import LRUCache
+from jingtum_python_lib.utils import utils, process_tx, is_number
 
 # LEDGER_OPTIONS = ['closed', 'header', 'current']
 

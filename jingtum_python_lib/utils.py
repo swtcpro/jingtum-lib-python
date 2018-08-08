@@ -10,7 +10,7 @@ import collections
 import re
 
 from jingtum_python_baselib.wallet import Wallet
-from src.config import Config
+from jingtum_python_lib.config import Config
 
 LEDGER_STATES = ['current', 'closed', 'validated']
 

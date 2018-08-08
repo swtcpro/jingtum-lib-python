@@ -11,8 +11,8 @@ import schedule
 from eventemitter import EventEmitter
 from websocket import create_connection
 
-from src.config import Config
-from src.logger import logger
+from jingtum_python_lib.config import Config
+from jingtum_python_lib.logger import logger
 
 test_evn = False
 TEST_MODE = "test"
