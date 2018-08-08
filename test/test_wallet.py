@@ -7,7 +7,7 @@
 """
 import unittest
 
-from src.logger import logger
+from jingtum_python_lib.logger import logger
 from jingtum_python_baselib.wallet import Wallet
 
 

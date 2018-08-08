@@ -7,8 +7,8 @@
 """
 import unittest
 
-from src.logger import logger
-from src.remote import Remote
+from jingtum_python_lib.logger import logger
+from jingtum_python_lib.remote import Remote
 
 
 class RemoteTest(unittest.TestCase):
