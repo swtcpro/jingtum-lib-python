@@ -1,4 +1,30 @@
-# jingtum-lib-python
-jingtum-lib to be used for interacting with jingtum blockchain network。This is the python version。
+# jingtum-python-lib
+jingtum-python-lib to be used for interacting with jingtum blockchain network。This is the python version。
 
-#20180530为了支持异步消息机制引入了schedule模块
+## Source code  
+* jingtum_python_lib - The source codes of jingtum lib.
+* jingtum_python_baselib - The source codes of jingtum base lib.
+* test - The unit tests for jingtum lib.
+* docs - The documentation for the jingtum lib.
+
+## History
+#20180504 project kick off
+#20180530 import schedule module for support async message
+#20180809 project released on pypi
+
+## Running Requirement
+OS can be Windows/Linux
+Python support python 3.X
+
+##Installation
+use pip command can install with ease
+pip install jingtum-python-lib
+
+## Development Environment
+* Windows 10
+* PyCharm 2018
+
+## References:
+The following libraries are referenced.
+* jingtum (https://github.com/jingtum/jingtum-python-sdk/)
+* swtcpro (https://github.com/swtcpro/jingtum-lib-nodejs/)
