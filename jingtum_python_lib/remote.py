@@ -63,7 +63,7 @@ class Remote:
         """
         if not self.server:
             return 'server not ready'
-        self.server.connect(callback)
+        return self.server.connect(callback)
 
     def is_connected(self):
         """
