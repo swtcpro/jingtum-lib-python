@@ -65,6 +65,20 @@ class Remote:
             return 'server not ready'
         return self.server.connect(callback)
 
+    def get_connect_info(self):
+        """
+        get connection info
+        """
+        if not self.server:
+            return 'server not ready'
+        data = self.server.socket_open()
+        if isinstance(data, dict) and data['callback']:
+            data = json.loads(data['callback'])
+            if data['status'] == 'success':
+                return data['result']
+            else:
+                return data
+
     def is_connected(self):
         """
         check is remote is connected to jingtumd
@@ -200,9 +214,6 @@ class Remote:
         return request
 
     # ---------------------- info request - -------------------
-    # ---------------------- info request - -------------------
-    # ---------------------- info request - -------------------
-
     def request_server_info(self):
         """
         请求服务器底层信息
