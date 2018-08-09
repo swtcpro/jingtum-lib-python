@@ -7,13 +7,6 @@ jingtum-python-lib to be used for interacting with jingtum blockchain network。
 * test - The unit tests for jingtum lib.
 * docs - The documentation for the jingtum lib.
 
-## History
- 20180504 project kick off
- 
- 20180530 import schedule module for support async message
- 
- 20180809 project released on pypi
-
 ## Running Requirement
 OS can be Windows/Linux
 
