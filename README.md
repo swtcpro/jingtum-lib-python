@@ -8,16 +8,18 @@ jingtum-python-lib to be used for interacting with jingtum blockchain network。
 * docs - The documentation for the jingtum lib.
 
 ## History
-#20180504 project kick off
-#20180530 import schedule module for support async message
-#20180809 project released on pypi
+# 20180504 project kick off
+# 20180530 import schedule module for support async message
+# 20180809 project released on pypi
 
 ## Running Requirement
 OS can be Windows/Linux
+
 Python support python 3.X
 
-##Installation
+## Installation
 use pip command can install with ease
+
 pip install jingtum-python-lib
 
 ## Development Environment
