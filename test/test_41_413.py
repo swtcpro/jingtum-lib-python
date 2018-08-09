@@ -14,7 +14,9 @@ from jingtum_python_lib.remote import Remote
 class RemoteTest(unittest.TestCase):
     def test_conn(self):
         remote = Remote()
-        result = remote.connect(None)
+        if not isinstance(remote.connect(None), Exception):
+            result = remote.get_connect_info()
+            logger.info(result)
 
     def test_conn_close(self):
         remote = Remote()
