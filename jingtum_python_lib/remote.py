@@ -55,7 +55,10 @@ class Remote:
         self.path = LRUCache(2100)  # 2100 size
         self.emitter = EventEmitter()
 
-    def connect(self, callback):
+    """
+    para callback set default to None as nouse now
+    """
+    def connect(self, callback=None):
         """
         connect first on every case
         :param callback:(error, result)
@@ -81,7 +84,7 @@ class Remote:
 
     def is_connected(self):
         """
-        check is remote is connected to jingtumd
+        check is remote is connected to jingtum
         :return:
         """
         return self.server.connected
@@ -311,8 +314,7 @@ class Remote:
             req.message['relation_type'] = self.get_relation_type(options['type'])
         if account:
             req.message['account'] = account
-        if ledger:
-            req.select_ledger(ledger)
+        req.select_ledger(ledger)
         if Wallet.is_valid_address(peer):
             req.message['peer'] = peer
         if limit:
@@ -557,9 +559,9 @@ class Remote:
         if data['status'] == 'success':
             return {
                 'account': data['result']['account'],
-                'ledger_index': data['result']['ledger_current_index'],
+                'ledger_hash': data['result']['ledger_hash'],
+                'ledger_index': data['result']['ledger_index'],
                 'offers': data['result']['offers']
-                #     'seq': data['seq']
             }
         else:
             return {
