@@ -35,6 +35,10 @@ class Request:
         :param ledger:  账本的Index或者hash
         :return: Request对象
         """
+        if ledger is None:
+            self.message['ledger_index'] = 'validated'
+            return self
+
         if isinstance(ledger, str) and ledger in LEDGER_STATES:
             self.message['ledger_index'] = ledger
         elif is_number(ledger):
