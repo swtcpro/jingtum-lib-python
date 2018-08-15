@@ -14,9 +14,8 @@ from jingtum_python_lib.logger import logger
 class RequestTest(unittest.TestCase):
     @staticmethod
     def test_select_ledger():
-        remote = Remote(local_sign=True)
-
-        if not isinstance(remote.connect(None), Exception):
+        remote = Remote()
+        if not isinstance(remote.connect(), Exception):
             req = remote.request_account_info({'account': 'j9fE48ebcvwnKSGnPdtN6jGNM9yVBMVaH8'})
             req.select_ledger(838796)
             result = req.submit()
@@ -24,9 +23,8 @@ class RequestTest(unittest.TestCase):
 
     @staticmethod
     def test_submit():
-        remote = Remote(local_sign=True)
-
-        if not isinstance(remote.connect(None), Exception):
+        remote = Remote()
+        if not isinstance(remote.connect(), Exception):
             req = remote.request_account_info({'account': 'j9fE48ebcvwnKSGnPdtN6jGNM9yVBMVaH8'})
             result = req.submit()
             logger.info(result)
