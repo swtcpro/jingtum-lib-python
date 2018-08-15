@@ -91,7 +91,7 @@ def is_number(s):
     try:
         float(s)
         return True
-    except ValueError:
+    except (TypeError, ValueError):
         pass
 
     try:
