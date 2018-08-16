@@ -517,7 +517,8 @@ class Remote:
         if data['status'] == 'success':
             account_data = {
                 'account_data': data['result']['account_data'],
-                'ledger_index': data['result']['ledger_current_index']
+                'ledger_index': data['result']['ledger_index'],
+                'ledger_hash': data['result']['ledger_hash']
             }
             return account_data
         else:
@@ -530,7 +531,8 @@ class Remote:
         data = data['callback']
         data = json.loads(data)
         return {
-            'ledger_index': data['result']['ledger_current_index'],
+            'ledger_index': data['result']['ledger_index'],
+            'ledger_hash': data['result']['ledger_hash'],
             'receive_currencies': data['result']['receive_currencies'],
             'send_currencies': data['result']['send_currencies'],
             'validated': data['result']['validated']
