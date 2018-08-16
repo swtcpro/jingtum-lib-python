@@ -15,7 +15,7 @@ class RemoteTest(unittest.TestCase):
     @staticmethod
     def test_create_pay_object():
         remote = Remote(local_sign=True)
-        if not isinstance(remote.connect(None), Exception):
+        if not isinstance(remote.connect(), Exception):
             options = {
                 'account': 'j9fE48ebcvwnKSGnPdtN6jGNM9yVBMVaH8',
                 'to': 'jEmEWuLQXgtBaro86hScnBpjN3TgKSoQGD',
@@ -66,7 +66,7 @@ class RemoteTest(unittest.TestCase):
                 "issuer": "js7M6x28mYDiZVJJtfJ84ydrv2PthY9W9u"
             }
         }
-        if not isinstance(remote.connect(None), Exception):
+        if not isinstance(remote.connect(), Exception):
             tx = remote.build_relation_tx(options_trust)
             tx.set_secret('ssTkYQLLYiZs7Sosp12sB43TocUbd')
             s = tx.submit()
@@ -99,7 +99,7 @@ class RemoteTest(unittest.TestCase):
                 'delegate_key': 'jEmEWuLQXgtBaro86hScnBpjN3TgKSoQGD',
                 'set_flag': '123'
         }
-        if not isinstance(remote.connect(None), Exception):
+        if not isinstance(remote.connect(), Exception):
             tx = remote.build_account_set_tx(options_property)
             tx.set_secret('ssTkYQLLYiZs7Sosp12sB43TocUbd')
             s = tx.submit()
