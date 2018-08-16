@@ -31,7 +31,7 @@ class OfferTest(unittest.TestCase):
             }
         }
 
-        if not isinstance(remote.connect(None), Exception):
+        if not isinstance(remote.connect(), Exception):
             tx = remote.build_offer_create_tx(options)
             tx.set_secret('sn37nYrQ6KPJvTFmaBYokS3FjXUWd')
             s = tx.submit()
@@ -46,7 +46,7 @@ class OfferTest(unittest.TestCase):
             'account': 'jB7rxgh43ncbTX4WeMoeadiGMfmfqY2xLZ',
         }
 
-        if not isinstance(remote.connect(None), Exception):
+        if not isinstance(remote.connect(), Exception):
             tx = remote.build_offer_cancel_tx(options)
             tx.set_secret('sn37nYrQ6KPJvTFmaBYokS3FjXUWd')
             s = tx.submit()
