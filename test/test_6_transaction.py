@@ -20,7 +20,7 @@ class TransactionTest(unittest.TestCase):
             'account': 'jB7rxgh43ncbTX4WeMoeadiGMfmfqY2xLZ',
             'sequence': 6889999
         }
-        if not isinstance(remote.connect(None), Exception):
+        if not isinstance(remote.connect(), Exception):
             req = remote.build_offer_cancel_tx(options)
             result = req.get_account()
             logger.info(result)
@@ -33,7 +33,7 @@ class TransactionTest(unittest.TestCase):
             'sequence': 688
         }
 
-        if not isinstance(remote.connect(None), Exception):
+        if not isinstance(remote.connect(), Exception):
             req = remote.build_offer_cancel_tx(options)
             result = req.get_transaction_type()
             logger.info(result)
