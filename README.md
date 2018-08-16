@@ -22,5 +22,5 @@ use pip command can install with ease, pip installation process will auto check 
 **pip install jingtum-python-lib**`
 
 ## References:
-* jingtum (https://github.com/jingtum/jingtum-python-sdk/)*
-* swtcpro (https://github.com/swtcpro/jingtum-lib-nodejs/)*
+* jingtum (https://github.com/jingtum/jingtum-python-sdk/)
+* swtcpro (https://github.com/swtcpro/jingtum-lib-nodejs/)
