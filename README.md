@@ -8,18 +8,19 @@ jingtum-python-lib to be used for interacting with jingtum blockchain network。
 * docs - The documentation for the jingtum lib.
 
 ## Running Requirement
-OS can be Windows/Linux
-
-**Python support python 3.X**
+###OS can be Windows/Linux
+###Python version needs python 3.5
+below modules also need
+* ecdsa>=0.13
+* eventemitter>=0.2.0
+* schedule>=0.5.0
+* six>=1.11.0
+* websocket-client>=0.47.0
 
 ## Installation
-use pip command can install with ease
+use pip command can install with ease, pip installation process will auto check module requirements
 
-**pip install jingtum-python-lib**
-
-## Development Environment
-* Windows 10
-* PyCharm 2018
+**pip install jingtum-python-lib**`
 
 ## References:
 The following libraries are referenced.
