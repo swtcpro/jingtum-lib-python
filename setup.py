@@ -5,7 +5,7 @@ from setuptools import setup
 
 setup(
      name="jingtum_python_lib",
-     version="1.1.7",
+     version="1.1.8",
      author="wuhan python dev team",
      author_email="caizl2002@hotmail.com",
      description=("jingtum_lib to be used for interacting with jingtum blockchain network"),
