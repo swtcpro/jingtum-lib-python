@@ -544,7 +544,8 @@ class Remote:
         if data['status'] == 'success':
             return {
                 'account': data['result']['account'],
-                'ledger_index': data['result']['ledger_current_index'],
+                'ledger_hash': data['result']['ledger_hash'],
+                'ledger_index': data['result']['ledger_index'],
                 'lines': data['result']['lines'],
                 'validated': data['result']['validated']
             }
