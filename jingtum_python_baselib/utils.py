@@ -94,6 +94,9 @@ def is_valid_hash(hash):
         return False
     return re.match(re.compile(HASH__RE), hash)
 
+class CheckSumException(Exception):
+    pass
+
 class JingtumBaseDecoder():
     def __init__(self):
         pass
@@ -107,7 +110,8 @@ class JingtumBaseDecoder():
         """Apply base58 decode, verify checksum, return payload.
         """
         decoded = cls.decode_base(*a, **kw)
-        assert cls.verify_checksum(decoded)
+        if not cls.verify_checksum(decoded):
+            raise CheckSumException
         payload = decoded[:-4] # remove the checksum
         payload = payload[1:]  # remove first byte, a version number
         return payload

@@ -43,7 +43,11 @@ class Wallet:
             keypairs = root_key_from_seed(parse_seed(secret))
             address = get_jingtum_from_key(keypairs)
             return {'secret': secret, 'address': address}
-        except Exception:
+        except CheckSumException:
+            return 'checksum error'
+        except SecretErrException:
+            return 'secret error'
+        else:
             return None
 
     """

@@ -149,11 +149,16 @@ def ecc_point_to_bytes_compressed(point, pad=False):
         curves.SECP256k1.order.bit_length()//8 if pad else None)
     return b"".join([header, bytes])
 
+
+class SecretErrException(Exception):
+    pass
+
 def parse_seed(secret):
     """Your Jingtum secret is a seed from which the true private key can
     be derived.
     """
-    assert secret[0] == 's'
+    if not secret[0] == 's':
+        raise SecretErrException
     return JingtumBaseDecoder.decode(secret)
 
 def get_jingtum_from_pubkey(pubkey):
