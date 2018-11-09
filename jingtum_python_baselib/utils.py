@@ -10,6 +10,12 @@ import six
 import re
 from hashlib import sha256
 
+"""
+'123'-->313233
+"""
+def str_to_hex(s):
+    return ''.join([hex(ord(c)).replace('0x', '') for c in s])
+
 def bytes_to_hex(srcinfo):
     # srcinfo is a array
     return ''.join(["%02X" % x for x in srcinfo]).strip()
