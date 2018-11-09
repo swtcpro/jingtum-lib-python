@@ -10,6 +10,7 @@
  * }
 """
 import json
+import math
 from numbers import Number
 
 from eventemitter import EventEmitter
@@ -387,11 +388,132 @@ class Remote:
 
         return self.request_account('account_offers', options, req)
 
+    def deploy_contract_tx(self, options):
+        """
+        创建部署合约对象
+         * @param options
+         *    account, required
+         *    amount, required
+         *    payload, required
+         * @returns {Transaction}
+        """
+        tx = Transaction(self, None)
+        if not options:
+            tx.tx_json['obj'] = Exception('invalid options type')
+            return tx
+
+        account = options['account']
+        amount = options['amount']
+        payload = options['payload']
+        if options.__contains__('params'):
+            params = options['params']
+
+        if not Wallet.is_valid_address(account):
+            tx.tx_json['account'] = Exception('invalid account')
+            return tx
+
+        if math.isnan(amount):
+            tx.tx_json['amount'] = Exception('invalid amount')
+            return tx
+
+        if not isinstance(payload, str):
+            tx.tx_json['payload'] = Exception('invalid payload: type error.')
+            return tx
+
+        if 'params' in vars():
+            if not isinstance(params, list):
+                tx.tx_json['params'] = Exception('invalid params')
+                return tx
+
+        tx.tx_json['TransactionType'] = 'ConfigContract'
+        tx.tx_json['Account'] = account
+        tx.tx_json['Amount'] = amount * 1000000
+        tx.tx_json['Method'] = 0
+        tx.tx_json['Payload'] = payload
+        tx.tx_json['Args'] = []
+        if 'params' in vars():
+            for i in params:
+                obj = {}
+                obj['Arg'] = {'Parameter': str_to_hex(i)}
+                tx.tx_json['Args'].append(obj)
+        print(tx.tx_json['Args'])
+
+        return tx
+
+    def call_contract_tx(self, options):
+        """
+        创建执行合约对象
+         * @param options
+         *    account, required
+         *    destination, required
+         *    foo, required
+         * @returns {Transaction}
+        """
+        tx = Transaction(self, None)
+        if not options:
+            tx.tx_json['obj'] = Exception('invalid options type')
+            return tx
+
+        account = options['account']
+        des = options['destination']
+        foo = options['foo']
+        if options.__contains__('params'):
+            params = options['params']
+
+        if not Wallet.is_valid_address(account):
+            tx.tx_json['account'] = Exception('invalid account')
+            return tx
+        if not Wallet.is_valid_address(des):
+            tx.tx_json['des'] = Exception('invalid destination')
+            return tx
+
+        if not isinstance(foo, str):
+            tx.tx_json['foo'] = Exception('foo must be string')
+            return tx
+
+        if 'params' in vars():
+            if not isinstance(params, list):
+                tx.tx_json['params'] = Exception('invalid params')
+            return tx
+
+        tx.tx_json['TransactionType'] = 'ConfigContract'
+        tx.tx_json['Account'] = account
+        tx.tx_json['Method'] = 1
+        tx.tx_json['Destination'] = des
+        tx.tx_json['ContractMethod'] = str_to_hex(foo)
+        tx.tx_json['Args'] = []
+        for i in params:
+            if not isinstance(i, dict):
+                tx.tx_json['params'] = Exception('invalid params')
+                return tx
+            obj = {}
+            obj.Arg = {'Parameter': utils(i)}
+            tx.tx_json.Args.append(obj)
+
+        return tx
+
     def parse_payment(self, data):
         if isinstance(data, dict) and data['callback']:
             data = json.loads(data['callback'])
             if data['status'] == 'success':
                 return {
+                    'engine_result': data['result']['engine_result'],
+                    'engine_result_code': data['result']['engine_result_code'],
+                    'engine_result_message': data['result']['engine_result_message'],
+                    'tx_blob': data['result']['tx_blob'],
+                    'tx_json': data['result']['tx_json']
+                }
+            else:
+                return data
+        else:
+            return data
+
+    def parse_contract(self, data):
+        if isinstance(data, dict) and data['callback']:
+            data = json.loads(data['callback'])
+            if data['status'] == 'success':
+                return {
+                    'ContractState:': data['result']['ContractState'],
                     'engine_result': data['result']['engine_result'],
                     'engine_result_code': data['result']['engine_result_code'],
                     'engine_result_message': data['result']['engine_result_message'],
