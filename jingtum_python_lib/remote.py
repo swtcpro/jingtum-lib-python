@@ -637,71 +637,76 @@ class Remote:
             return data
 
     def parse_account_info(self, data):
-        data = data['callback']
         if isinstance(data, dict) and data['callback']:
             data = json.loads(data['callback'])
-            return {
-                'error': data['error'],
-                'msg': data['error_message']
-            }
-        data = json.loads(data)
-        if data['status'] == 'success':
-            account_data = {
-                'account_data': data['result']['account_data'],
-                'ledger_index': data['result']['ledger_index'],
-                'ledger_hash': data['result']['ledger_hash']
-            }
-            return account_data
+            if data['status'] == 'success':
+                account_data = {
+                    'account_data': data['result']['account_data'],
+                    'ledger_index': data['result']['ledger_index'],
+                    'ledger_hash': data['result']['ledger_hash']
+                }
+                return account_data
+            else:
+                return {
+                    'error': data['error'],
+                    'msg': data['error_message']
+                }
         else:
-            return {
-                'error': data['error'],
-                'msg': data['error_message']
-            }
+            return data
 
     def parse_account_tums(self, data):
-        data = data['callback']
-        data = json.loads(data)
-        return {
-            'ledger_index': data['result']['ledger_index'],
-            'ledger_hash': data['result']['ledger_hash'],
-            'receive_currencies': data['result']['receive_currencies'],
-            'send_currencies': data['result']['send_currencies'],
-            'validated': data['result']['validated']
-        }
-
-    def parse_request_account_relations(self, data):
-        data = data['callback']
-        data = json.loads(data)
-        if data['status'] == 'success':
+        if isinstance(data, dict) and data['callback']:
+            data = data['callback']
+            data = json.loads(data)
             return {
-                'account': data['result']['account'],
-                'ledger_hash': data['result']['ledger_hash'],
                 'ledger_index': data['result']['ledger_index'],
-                'lines': data['result']['lines'],
+                'ledger_hash': data['result']['ledger_hash'],
+                'receive_currencies': data['result']['receive_currencies'],
+                'send_currencies': data['result']['send_currencies'],
                 'validated': data['result']['validated']
             }
         else:
-            return {
-                'error': data['error'],
-                'msg': data['error_message']
-            }
+            return data
+
+    def parse_request_account_relations(self, data):
+        if isinstance(data, dict) and data['callback']:
+            data = data['callback']
+            data = json.loads(data)
+            if data['status'] == 'success':
+                return {
+                    'account': data['result']['account'],
+                    'ledger_hash': data['result']['ledger_hash'],
+                    'ledger_index': data['result']['ledger_index'],
+                    'lines': data['result']['lines'],
+                    'validated': data['result']['validated']
+                }
+            else:
+                return {
+                    'error': data['error'],
+                    'msg': data['error_message']
+                }
+        else:
+            return data
 
     def parse_request_account_offers(self, data):
-        data = data['callback']
-        if not isinstance(data, dict):
-            data = json.loads(data)
-        if data['status'] == 'success':
-            return {
-                'account': data['result']['account'],
-                'ledger_hash': data['result']['ledger_hash'],
-                'ledger_index': data['result']['ledger_index'],
-                'offers': data['result']['offers']
-            }
+        if isinstance(data, dict) and data['callback']:
+            data = data['callback']
+            if not isinstance(data, dict):
+                data = json.loads(data)
+            if data['status'] == 'success':
+                return {
+                    'account': data['result']['account'],
+                    'ledger_hash': data['result']['ledger_hash'],
+                    'ledger_index': data['result']['ledger_index'],
+                    'offers': data['result']['offers']
+                }
+            else:
+                return {
+                    'error': data['error'],
+                    'msg': data['error_message']
+                }
         else:
-            return {
-                'error': data['error'],
-                'msg': data['error_message']
-            }
+            return data
 
     """
      * payment
