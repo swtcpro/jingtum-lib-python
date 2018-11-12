@@ -17,18 +17,18 @@ class RemoteTest(unittest.TestCase):
         remote = Remote(local_sign=True)
         if not isinstance(remote.connect(), Exception):
             options = {
-                'account': 'j9fE48ebcvwnKSGnPdtN6jGNM9yVBMVaH8',
+                'account': 'jB7rxgh43ncbTX4WeMoeadiGMfmfqY2xLZ',
                 'to': 'jEmEWuLQXgtBaro86hScnBpjN3TgKSoQGD',
                 'amount': {
-                    "value": 0.01,
+                    "value": 444440.01,
                     "currency": "SWT",
                     "issuer": ""
                 }
             }
             tx = remote.build_payment_tx(options)
-            tx.set_secret('ssTkYQLLYiZs7Sosp12sB43TocUbd')
+            tx.set_secret('sn37nYrQ6KPJvTFmaBYokS3FjXUWd')
             tx.add_memo('给jDUjqoDZLhzx4DCf6pvSivjkjgtRESY62c支付0.5swt.')  # 可选
-            tx.add_memo('给')  # 可选
+            #tx.add_memo('给')  # 可选
             s = tx.submit()
             result = remote.parse_payment(s)
             logger.info(result)
@@ -111,6 +111,7 @@ class RemoteTest(unittest.TestCase):
             s = tx.submit()
             result = remote.parse_payment(s)
             logger.info(result)
+
 
 if __name__ == '__main__':
     unittest.main()
