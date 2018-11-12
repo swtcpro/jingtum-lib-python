@@ -20,6 +20,7 @@ SEED_PREFIX = 33
 ACCOUNT_PREFIX = 0
 ALPHABET = 'jpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65rkm8oFqi1tuvAxyz'
 
+
 def hash256(data):
     """
         operation twice
@@ -27,16 +28,19 @@ def hash256(data):
     one256 = unhexlify(hashlib.sha256(data).hexdigest())
     return hashlib.sha256(one256).hexdigest()
 
+
 def hash512(data):
     """
         operation once
     """
     return unhexlify(hashlib.sha512(data).hexdigest())
 
+
 def sha256(bytes):
-    hash = hashlib.sha256()
-    hash.update(bytes)
-    return hash.digest()
+    hash_val = hashlib.sha256()
+    hash_val.update(bytes)
+    return hash_val.digest()
+
 
 """
  * decode encoded input,
@@ -54,23 +58,24 @@ def decode_address(version, input):
     computed = sha256(sha256(bytearray(bytes[0:-4])))[0:4]
     checksum = bytes[-4:]
     i = 0
-    #print('computed[0] is ', computed[0])
     while i != 4:
-        if (computed[i] != checksum[i]):
+        if computed[i] != checksum[i]:
             raise Exception('invalid checksum')
         i += 1
     return bytes[1:-4]
 
+
 def get_str(l):
     sss = ""
-    while l>0:
+    while l > 0:
         try:
             l, b = divmod(l, 58)
-            sss +=  ALPHABET[b:b+1]
+            sss += ALPHABET[b:b+1]
         except Exception:
             print("get_str error[%s]."%str(b))
             return None
     return sss[::-1]
+
 
 """
  * generate random bytes and encode it to secret
@@ -130,12 +135,14 @@ def root_key_from_seed(seed):
     key.public_gen = public_gen
     return key
 
+
 def first_half_of_sha512(*bytes):
     """As per spec, this is the hashing function used."""
     hash = hashlib.sha512()
     for part in bytes:
         hash.update(part)
     return hash.digest()[:256//8]
+
 
 def ecc_point_to_bytes_compressed(point, pad=False):
     """
@@ -153,6 +160,7 @@ def ecc_point_to_bytes_compressed(point, pad=False):
 class SecretErrException(Exception):
     pass
 
+
 def parse_seed(secret):
     """Your Jingtum secret is a seed from which the true private key can
     be derived.
@@ -161,6 +169,7 @@ def parse_seed(secret):
         raise SecretErrException
     return JingtumBaseDecoder.decode(secret)
 
+
 def get_jingtum_from_pubkey(pubkey):
     """Given a public key, determine the Jingtum address.
     """
@@ -168,15 +177,18 @@ def get_jingtum_from_pubkey(pubkey):
     ripemd160.update(hashlib.sha256(pubkey).digest())
     return JingtumBaseDecoder.encode(ripemd160.digest())
 
+
 def get_jingtum_publickey(key):
     """Another helper. Returns the jingtum publickey from the key."""
     pubkey = ecc_point_to_bytes_compressed(key.privkey.public_key.point, pad=True)
     return fmt_hex(pubkey)
 
+
 def get_jingtum_from_key(key):
     """Another helper. Returns the first jingtum address from the key."""
     pubkey = ecc_point_to_bytes_compressed(key.privkey.public_key.point, pad=True)
     return get_jingtum_from_pubkey(pubkey)
+
 
 def ecdsa_sign(key, signing_hash, **kw):
     """Sign the given data. The key is the secret returned by
@@ -190,6 +202,7 @@ def ecdsa_sign(key, signing_hash, **kw):
     der_coded = sigencode_der(r, s, None)
     return der_coded
 
+
 def ecdsa_make_canonical(r, s):
     """Make sure the ECDSA signature is the canonical one.
     """
@@ -200,5 +213,16 @@ def ecdsa_make_canonical(r, s):
         s = N - s
     return r, s
 
+
 def jingtum_sign(key, message):
     return hexlify(ecdsa_sign(key, message, k=3))
+
+
+# convert the input address to byte array
+# @param address
+# @returns byte array
+def convert_address_to_bytes(address):
+    try:
+        return decode_address(ACCOUNT_PREFIX, address)
+    except:
+        raise Exception('convert_address_to_bytes error!')
