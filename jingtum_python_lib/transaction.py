@@ -302,17 +302,17 @@ class Transaction:
                 return self.tx_json[key]
 
         data = {}
-        if self.remote.local_sign:  # 签名之后传给底层
+        if self.tx_json['TransactionType'] == 'Signer':  # 直接将blob传给底层
+            data = {
+                "tx_blob": self.tx_json['blob']
+            }
+        elif self.remote.local_sign:  # 签名之后传给底层
             self.sign()
             for key in self.tx_json:
                 if isinstance(self.tx_json[key], Exception):
                     return self.tx_json[key]
             data = {
                 'tx_blob': self.tx_json['blob']
-            }
-        elif self.tx_json['TransactionType'] == 'Signer':  # 直接将blob传给底层
-            data = {
-                "tx_blob": self.tx_json['blob']
             }
         else:  # 不签名交易传给底层
             data = {
