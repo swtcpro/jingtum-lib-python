@@ -243,7 +243,10 @@ def txn_type(tx, account):
                 return 'trusting'
             else:
                 return 'trusted'
-        elif tx['TransactionType'] == 'ConfigContract':
+        elif tx['TransactionType'] in ('RelationDel', 'AccountSet',
+            'SetRegularKey', 'RelationSet',
+            'SignSet','Operation',
+            'ConfigContract') :
             return tx['TransactionType'].lower()
         else:
             return 'unknown'
@@ -279,17 +282,16 @@ def is_valid_amount(amount):
     if (not amount):
         return False
     # check amount value
-    if ((not amount.__contains__('value') and amount['value'] != 0) or not is_num(amount['value'])):
+    if (not amount.__contains__('value') and amount['value'] != 0) or not is_num(amount['value']):
         return False
     # check amount currency
-    if (not amount.__contains__('currency') or not is_valid_currency(amount['currency'])):
+    if not amount.__contains__('currency') or not is_valid_currency(amount['currency']):
         return False
     # native currency issuer is empty
-    if (amount['currency'] == Config.currency and amount['issuer'] != ''):
+    if amount['currency'] == Config.currency and amount['issuer'] != '':
         return False
     # non native currency issuer is not allowed to be empty
-    if (amount['currency'] != Config.currency
-            and not Wallet.is_valid_address(amount['issuer'])):
+    if amount['currency'] != Config.currency and not Wallet.is_valid_address(amount['issuer']):
         return False
     return True
 
@@ -447,8 +449,26 @@ def process_tx(txn, account):
             result['isactive'] = True
         result['amount'] = parse_amount(tx['LimitAmount'])
 
+    elif result['type'] == 'relationdel':
+        if account == tx['Target']:
+            result['counterparty'] = tx['Account']
+        else:
+            result['counterparty'] = tx['Target']
+
+        if tx['RelationType'] == 3:
+            result['relationtype'] = 'unfreeze'
+        else:
+            result['relationtype'] = 'unknown'
+
+        if account == tx['Target']:
+            result['isactive'] = False
+        else:
+            result['isactive'] = True
+        result['amount'] = parse_amount(tx['LimitAmount'])
+
     elif result['type'] == 'configcontract':
         result['params'] = format_args(tx['Args'])
+        print('res is args ' + result['params'])
         if tx['Method'] == 0:
             result['method'] = 'deploy'
             result['payload'] = tx['Payload']
