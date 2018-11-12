@@ -37,9 +37,9 @@ from jingtum_python_lib.utils import utils, process_tx, is_number
 
 
 def to_amount(amount):
-    if (amount.__contains__('value') and int(float(amount['value'])) > 100000000000):
+    if amount.__contains__('value') and int(float(amount['value'])) > 100000000000:
         return Exception('invalid amount: amount\'s maximum value is 100000000000')
-    if (amount['currency'] == Config.currency):
+    if amount['currency'] == Config.currency:
         # return new String(parseInt(Number(amount.value) * 1000000.00))
         return str(int(float(amount['value']) * 1000000))
     return amount
@@ -314,8 +314,13 @@ class Remote:
         if 'type' in options:
             req.message['relation_type'] = self.get_relation_type(options['type'])
         if account:
-            req.message['account'] = account
+            if not Wallet.is_valid_address(account):
+                req.message['account'] = Exception('invalid account')
+                return req
+            else:
+                req.message['account'] = account
         req.select_ledger(ledger)
+
         if Wallet.is_valid_address(peer):
             req.message['peer'] = peer
         if limit:
@@ -431,6 +436,10 @@ class Remote:
         tx.tx_json['Method'] = 0
         tx.tx_json['Payload'] = payload
         tx.tx_json['Args'] = []
+        class newobj:
+            def __init__(self):
+                self.Arg = ''
+
         if 'params' in vars():
             for i in params:
                 obj = {}
@@ -474,7 +483,7 @@ class Remote:
         if 'params' in vars():
             if not isinstance(params, list):
                 tx.tx_json['params'] = Exception('invalid params')
-            return tx
+                return tx
 
         tx.tx_json['TransactionType'] = 'ConfigContract'
         tx.tx_json['Account'] = account
@@ -483,12 +492,12 @@ class Remote:
         tx.tx_json['ContractMethod'] = str_to_hex(foo)
         tx.tx_json['Args'] = []
         for i in params:
-            if not isinstance(i, dict):
-                tx.tx_json['params'] = Exception('invalid params')
+            if not isinstance(i, str):
+                tx.tx_json['params'] = Exception('params must be string')
                 return tx
             obj = {}
-            obj.Arg = {'Parameter': utils(i)}
-            tx.tx_json.Args.append(obj)
+            obj['Arg'] = {'Parameter': str_to_hex(i)}
+            tx.tx_json['Args'].append(obj)
 
         return tx
 
@@ -703,7 +712,6 @@ class Remote:
      * @returns {transaction}
      * 创建支付对象
     """
-
     def build_payment_tx(self, options):
         tx = Transaction(self, None)
         if not options:
@@ -739,7 +747,7 @@ class Remote:
         tx.tx_json['Destination'] = dst
         return tx
 
-    ##设置账号属性
+    # 设置账号属性
     def build_account_set_tx(self, options):
         tx = Transaction(self, None)
         if not options:
@@ -936,9 +944,9 @@ class Remote:
         tx.tx_json['Account'] = src
         tx.tx_json['Target'] = des
         if options['type'] == 'authorize':
-            tx.tx_json['RelationType'] = '1'
+            tx.tx_json['RelationType'] = 1
         else:
-            tx.tx_json['RelationType'] = '3'
+            tx.tx_json['RelationType'] = 3
         if limit:
             tx.tx_json['LimitAmount'] = limit
         return tx
@@ -980,7 +988,6 @@ class Remote:
      * @returns {Transaction}
      * 创建关系对象
     """
-
     def build_relation_tx(self, options):
         tx = Transaction(self, None)
         if not options:
@@ -997,7 +1004,7 @@ class Remote:
         tx.tx_json['msg'] = Exception('build relation set should not go here')
         return tx
 
-    ##获得账号交易列表
+    # 获得账号交易列表
     def request_account_tx(self, options):
         data = []
         request = Request(self, 'account_tx', None)
@@ -1037,7 +1044,7 @@ class Remote:
 
         return request
 
-    ##获得市场挂单列表
+    # 获得市场挂单列表
     def request_order_book(self, options):
         request = Request(self, 'book_offers', None)
         if not isinstance(options, object):
