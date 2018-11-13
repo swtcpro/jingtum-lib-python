@@ -68,7 +68,7 @@ RelationTypes = ['trust', 'authorize', 'freeze', 'unfreeze']
 AccountSetTypes = ['property', 'delegate', 'signer']
 
 
-def filterFun(v):
+def filter_fun(v):
     return v
 
 
@@ -103,10 +103,10 @@ def Number(num):
 
 def max_amount(amount):
     if isinstance(amount, str) and is_number(amount):
-        _amount = safe_int(Number(amount) * (1.0001))
+        _amount = safe_int(Number(amount) * 1.0001)
         return str(_amount)
     if isinstance(amount, dict) and utils.is_valid_amount(amount):
-        _value = Number(amount['value']) * (1.0001)
+        _value = Number(amount['value']) * 1.0001
         amount['value'] = str(_value)
         return amount
     return Exception('invalid amount too max')
@@ -117,7 +117,7 @@ class Transaction:
         # TODO(zfn):事件驱动注册待实现
         self.remote = remote
         self.tx_json = {"Flags": 0, "Fee": fee}
-        self._filter = filter or filterFun
+        self._filter = filter or filter_fun
         self._secret = None
 
     def parseJson(self, val):
@@ -179,7 +179,7 @@ class Transaction:
 
     """
     * set a path to payment
-    * this path is repesented as a key, which is computed in path find
+    * this path is represented as a key, which is computed in path find
     * so if one path you computed self is not allowed
     * when path set, sendmax is also set.
     * @param path
@@ -291,6 +291,8 @@ class Transaction:
         prefix = 0x53545800
         serial = Serializer(None)
         hash = serial.from_json(self.tx_json).hash(prefix)
+        # print('self.tx_json is', self.tx_json)
+        # print('hash is' , hash)
         self.tx_json['TxnSignature'] = wt.sign(hash)
         self.tx_json['blob'] = serial.from_json(self.tx_json).to_hex()
         self.local_sign = True
