@@ -12,6 +12,7 @@ from jingtum_python_lib.logger import logger
 from jingtum_python_lib.remote import Remote
 from jingtum_python_baselib.utils import str_to_hex
 
+
 class ContractTest(unittest.TestCase):
     @staticmethod
     def test_deploy_contract():
@@ -22,15 +23,32 @@ class ContractTest(unittest.TestCase):
             'function foo(t) result=scGetAccountBalance(t) ' + \
             'return result end'
         options = {
-            'account': 'jB7rxgh43ncbTX4WeMoeadiGMfmfqY2xLZ',
+            'account': 'j9fE48ebcvwnKSGnPdtN6jGNM9yVBMVaH8',
             'amount': 10,
             'payload': str_to_hex(payload),
-            'params': ['jHb9***tyTh','jHb9***ty5h']
+            'params': ['j9fE48ebcvwnKSGnPdtN6jGNM9yVBMVaH8']
         }
 
         if not isinstance(remote.connect(), Exception):
             tx = remote.deploy_contract_tx(options)
-            tx.set_secret('sn37nYrQ6KPJvTFmaBYokS3FjXUWd')
+            tx.set_secret('ssTkYQLLYiZs7Sosp12sB43TocUbd')
+            s = tx.submit()
+            result = remote.parse_contract(s)
+            logger.info(result)
+
+    @staticmethod
+    def test_call_contract():
+        remote = Remote(local_sign=True)
+        options = {
+            'account': 'j9fE48ebcvwnKSGnPdtN6jGNM9yVBMVaH8',
+            'destination': 'jD2WwwJcjh3RtzQFnXe8joq72FN6KrVuji',
+            'foo': 'foo',
+            'params': ['j9fE48ebcvwnKSGnPdtN6jGNM9yVBMVaH8']
+        }
+
+        if not isinstance(remote.connect(), Exception):
+            tx = remote.call_contract_tx(options)
+            tx.set_secret('ssTkYQLLYiZs7Sosp12sB43TocUbd')
             s = tx.submit()
             result = remote.parse_contract(s)
             logger.info(result)
