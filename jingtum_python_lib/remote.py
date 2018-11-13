@@ -20,10 +20,8 @@ from jingtum_python_baselib.wallet import Wallet
 from jingtum_python_lib.config import Config
 from jingtum_python_lib.request import Request
 from jingtum_python_lib.server import Server, WebSocketServer
-from jingtum_python_lib.transaction import RelationTypes, AccountSetTypes, set_clear_flags, OfferTypes
-from jingtum_python_lib.transaction import Transaction
-from jingtum_python_lib.utils import LRUCache
-from jingtum_python_lib.utils import utils, process_tx, is_number
+from jingtum_python_lib.transaction import RelationTypes, AccountSetTypes, set_clear_flags, OfferTypes, Transaction
+from jingtum_python_lib.utils import LRUCache, utils, process_tx, is_number
 
 # LEDGER_OPTIONS = ['closed', 'header', 'current']
 
@@ -550,49 +548,58 @@ class Remote:
 
     @staticmethod
     def parse_ledger(data, req):
-        data = data['callback']
-        if not isinstance(data, dict):
+        if isinstance(data, dict) and data['callback']:
+            data = data['callback']
+            data = data['callback']
             data = json.loads(data)
-        if data['status'] == 'success':
-            if data['result'].__contains__('ledger'):
-                ledger = data['result']['ledger']
-            else:
-                ledger = data['result']['closed']['ledger']
+            if data['status'] == 'success':
+                if data['result'].__contains__('ledger'):
+                    ledger = data['result']['ledger']
+                else:
+                    ledger = data['result']['closed']['ledger']
 
-            if req.message.__contains__('transactions') and req.message['transactions']:
-                return ledger
+                if req.message.__contains__('transactions') and req.message['transactions']:
+                    return ledger
+                else:
+                    return {
+                        'accepted': ledger['accepted'],
+                        'ledger_hash': ledger['hash'],
+                        'ledger_index': ledger['ledger_index'],
+                        'parent_hash': ledger['parent_hash'],
+                        'close_time': ledger['close_time_human'],
+                        'total_coins': ledger['total_coins']
+                    }
             else:
                 return {
-                    'accepted': ledger['accepted'],
-                    'ledger_hash': ledger['hash'],
-                    'ledger_index': ledger['ledger_index'],
-                    'parent_hash': ledger['parent_hash'],
-                    'close_time': ledger['close_time_human'],
-                    'total_coins': ledger['total_coins']
+                    'error': data['error'],
+                    'msg': data['error_message']
                 }
         else:
-            return {
-                'error': data['error'],
-                'msg': data['error_message']
-            }
+            return data
 
     def parse_ledger_closed(self, data):
-        data = data['callback']
-        data = json.loads(data)
-        return {
-            'ledger_hash': data['result']['ledger_hash'],
-            'ledger_index': data['result']['ledger_index']
-        }
+        if isinstance(data, dict) and data['callback']:
+            data = data['callback']
+            data = json.loads(data)
+            return {
+                'ledger_hash': data['result']['ledger_hash'],
+                'ledger_index': data['result']['ledger_index']
+            }
+        else:
+            return data
 
     def parse_server_info(self, data):
-        data = data['callback']
-        data = json.loads(data)
-        return {
-            'version': data['result']['info']['build_version'],
-            'ledgers': data['result']['info']['complete_ledgers'],
-            'node': data['result']['info']['pubkey_node'],
-            'state': data['result']['info']['server_state']
-        }
+        if isinstance(data, dict) and data['callback']:
+            data = data['callback']
+            data = json.loads(data)
+            return {
+                'version': data['result']['info']['build_version'],
+                'ledgers': data['result']['info']['complete_ledgers'],
+                'node': data['result']['info']['pubkey_node'],
+                'state': data['result']['info']['server_state']
+            }
+        else:
+            return data
 
     @staticmethod
     def parse_account_tx_info(data, req):
