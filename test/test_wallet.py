@@ -17,13 +17,14 @@ class TestWallet(unittest.TestCase):
 
     @staticmethod
     def test_from_secret():
-        result = Wallet.from_secret('ss2A7yahPhoduQjmG7z9BHu3uReDk')
+        result = Wallet.from_secret('ss2A7yahPhoduQjmG7z9BHu3uReDk123')
         logger.info(result)
 
     @staticmethod
     def test_generate():
         result = Wallet.generate()
         logger.info(result)
+
 
 if __name__ == '__main__':
     unittest.main()
