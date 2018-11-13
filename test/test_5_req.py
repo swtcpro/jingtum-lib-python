@@ -29,5 +29,6 @@ class RequestTest(unittest.TestCase):
             result = req.submit()
             logger.info(result)
 
+
 if __name__ == '__main__':
     unittest.main()
