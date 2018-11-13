@@ -2,10 +2,11 @@ import math
 import json
 import re
 from jingtum_python_baselib.utils import fmt_hex,hex_to_bytes,to_bytes
-from jingtum_python_baselib.keypairs import decode_address
+from jingtum_python_baselib.keypairs import decode_address, convert_address_to_bytes
 from jingtum_python_baselib.tum_amount import Amount
+from jingtum_python_baselib.datacheck import is_currency
 
-#Data type map.
+# Data type map.
 # Mapping of type ids to data types. The type id is specified by the high
 TYPES_MAP = [
     None,
@@ -41,11 +42,11 @@ TYPES_MAP = [
 # Mapping of field type id to field type name.
 FIELDS_MAP = {
     # Common types
-    1: { # Int16
+    1: {  # Int16
         1: 'LedgerEntryType',
         2: 'TransactionType'
     },
-    2: { # Int32
+    2: {  # Int32
         2: 'Flags',
         3: 'SourceTag',
         4: 'Sequence',
@@ -59,7 +60,7 @@ FIELDS_MAP = {
         12: 'WalletSize',
         13: 'OwnerCount',
         14: 'DestinationTag',
-        # Skip 15
+        15: "Timestamp",
         16: 'HighQualityIn',
         17: 'HighQualityOut',
         18: 'LowQualityIn',
@@ -79,10 +80,11 @@ FIELDS_MAP = {
         32: 'ReserveIncrement',
         33: 'SetFlag',
         34: 'ClearFlag',
+        35: "RelationType",
         36: 'Method',
         39: 'Contracttype'
     },
-    3: { # Int64
+    3: {  # Int64
         1: 'IndexNext',
         2: 'IndexPrevious',
         3: 'BookNode',
@@ -92,10 +94,10 @@ FIELDS_MAP = {
         7: 'LowNode',
         8: 'HighNode'
     },
-    4: { # Hash128
+    4: {  # Hash128
         1: 'EmailHash'
     },
-    5: { # Hash256
+    5: {  # Hash256
         1: 'LedgerHash',
         2: 'ParentHash',
         3: 'TransactionHash',
@@ -111,7 +113,7 @@ FIELDS_MAP = {
         19: 'Amendment',
         20: 'TicketID'
     },
-    6: { # Amount
+    6: {   # Amount
         1: 'Amount',
         2: 'Balance',
         3: 'LimitAmount',
@@ -144,7 +146,7 @@ FIELDS_MAP = {
         17: 'ContractMethod',
         18: 'Parameter'
     },
-    8: { # Account
+    8: {  # Account
         1: 'Account',
         2: 'Owner',
         3: 'Destination',
@@ -152,8 +154,8 @@ FIELDS_MAP = {
         7: 'Target',
         8: 'RegularKey'
     },
-    14: { # Object
-        1: None,  #end of Object
+    14: {  # Object
+        1: None,  # end of Object
         2: 'TransactionMetaData',
         3: 'CreatedNode',
         4: 'DeletedNode',
@@ -165,8 +167,8 @@ FIELDS_MAP = {
         10: 'Memo',
         11: 'Arg'
     },
-    15: { # Array
-        1: None,  #end of Array
+    15: {  # Array
+        1: None,  # end of Array
         2: 'SigningAccounts',
         3: 'TxnSignatures',
         4: 'Signatures',
@@ -179,21 +181,21 @@ FIELDS_MAP = {
     },
 
     # Uncommon types
-    16: { # Int8
+    16: {  # Int8
         1: 'CloseResolution',
         2: 'TemplateEntryType',
         3: 'TransactionResult'
     },
-    17: { # Hash160
+    17: {  # Hash160
         1: 'TakerPaysCurrency',
         2: 'TakerPaysIssuer',
         3: 'TakerGetsCurrency',
         4: 'TakerGetsIssuer'
     },
-    18: { # PathSet
+    18: {  # PathSet
         1: 'Paths'
     },
-    19: { # Vector256
+    19: {  # Vector256
         1: 'Indexes',
         2: 'Hashes',
         3: 'Amendments'
@@ -217,6 +219,7 @@ INVERSE_FIELDS_MAP = {
     'WalletSize': [2, 12],
     'OwnerCount': [2, 13],
     'DestinationTag': [2, 14],
+    'Timestamp': [2, 15],
     'HighQualityIn': [2, 16],
     'HighQualityOut': [2, 17],
     'LowQualityIn': [2, 18],
@@ -236,6 +239,7 @@ INVERSE_FIELDS_MAP = {
     'ReserveIncrement': [2, 32],
     'SetFlag': [2, 33],
     'ClearFlag': [2, 34],
+    'RelationType': [2, 35],
     'Method': [2, 36],
     'Contracttype': [2, 39],
     'IndexNext': [3, 1],
@@ -329,11 +333,12 @@ INVERSE_FIELDS_MAP = {
     'Amendments': [19, 3]
 }
 
+
 def stringToHex(s):
     result = ''
     for c in s:
         b = ord(c)
-        # ×ª»»³É16½øÖÆµÄASCIIÂë
+        # ×ªï¿½ï¿½ï¿½ï¿½16ï¿½ï¿½ï¿½Æµï¿½ASCIIï¿½ï¿½
         if b < 16:
             result += '0' + hex(b).replace('0x', '')
         else:
@@ -341,13 +346,14 @@ def stringToHex(s):
 
     return result
 
+
 # Convert an integer value into an array of bytes.
 # The result is appended to the serialized object ('so').
 def convert_integer_to_bytearray(val, bytes):
-    if not isinstance(val,(int,float)):
+    if not isinstance(val, (int, float)):
         raise Exception('Value is not a number', bytes)
 
-    if (val < 0 or val >= math.pow(256, bytes)):
+    if val < 0 or val >= math.pow(256, bytes):
         raise Exception('Value out of bounds')
 
     newBytes = []
@@ -358,7 +364,6 @@ def convert_integer_to_bytearray(val, bytes):
         i += 1
 
     return newBytes
-
 
 
 """
@@ -374,12 +379,11 @@ def convert_integer_to_bytearray(val, bytes):
   Nickname: [110].concat(sleBase,[
   Offer: [111].concat(sleBase,[
   SkywellState: [114].concat(sleBase,[
-
   TODO: add string input handles
 """
 def get_ledger_entry_type(structure):
     if isinstance(structure,int):
-        if structure==97:
+        if structure == 97:
             output = 'AccountRoot'
         elif structure == 99:
             output = 'Contract'
@@ -400,11 +404,11 @@ def get_ledger_entry_type(structure):
         elif structure == 114:
             output = 'SkywellState'
         else:
-            raise Exception('Invalid input type for ransaction result!')
+            raise Exception('Invalid input type for transaction result!')
     elif isinstance(structure, str):
         if structure == 'AccountRoot':
             output = 97
-        elif structure =='Contract':
+        elif structure == 'Contract':
             output = 99
         elif structure == 'DirectoryNode':
             output = 100
@@ -423,13 +427,14 @@ def get_ledger_entry_type(structure):
         elif structure == 'SkywellState':
             output = 114
         else:
-            output = 0#undefined results, should not come here.
+            output = 0  # undefined results, should not come here.
     else:
         output = 'UndefinedLedgerEntry'
-    #end typeof structure
+    # end typeof structure
 
     print('Get ledger entry type:', output)
     return output
+
 
 # return the transaction type in string
 # Data defined in the TRANSACTION_TYPES
@@ -451,8 +456,12 @@ def get_transaction_type(structure):
             output = 'RemoveContract'
         elif structure == 20:
             output = 'TrustSet'
-        elif structure == 100:
-            output = 'EnableFeature'
+        elif structure == 21:
+            output = 'RelationSet'
+        elif structure == 22:
+            output = 'RelationDel'
+        elif structure == 30:
+            output = 'ConfigContract'
         elif structure == 101:
             output = 'SetFee'
         else:
@@ -474,6 +483,12 @@ def get_transaction_type(structure):
             output = 10
         elif structure == 'TrustSet':
             output = 20
+        elif structure == 'RelationSet':
+            output = 21
+        elif structure == 'RelationDel':
+            output = 22
+        elif structure == 'ConfigContract':
+            output = 30
         elif structure == 'EnableFeature':
             output = 100
         elif structure == 'SetFee':
@@ -482,34 +497,37 @@ def get_transaction_type(structure):
             raise Exception('Invalid transaction type!')
     else:
         raise Exception('Invalid input type for transaction type!')
-    #end typeof structure
+    # end type of structure
 
     print('Get tx type:', output)
     return output
 
+
 class SerializedType:
     def serialize_varint(so, val):
-        if (val < 0):
+        if val < 0:
             raise Exception('Variable integers are unsigned.')
 
-        if (val <= 192):
+        if val <= 192:
             so.append([val])
-        elif (val <= 12480):
+        elif val <= 12480:
             val -= 193
             so.append([193 + (val >> 8), val & 0xff])
-        elif (val <= 918744):
+        elif val <= 918744:
             val -= 12481
             so.append([241 + (val >> 16), val >> 8 & 0xff, val & 0xff])
         else:
             raise Exception('Variable integer overflow.')
 
+
 # Input:  HEX data in string format
 # Output: byte array
-def serialize_hex(so, hexData, noLength=None):
-    byteData = hex_to_bytes(hexData) #bytes.fromBits(hex.toBits(hexData))
-    if not noLength:
-        SerializedType.serialize_varint(so, len(byteData))
-    so.append(byteData)
+def serialize_hex(so, hexData, no_length=None):
+    byte_data = hex_to_bytes(hexData)  # bytes.fromBits(hex.toBits(hexData))
+    if not no_length:
+        SerializedType.serialize_varint(so, len(byte_data))
+    so.append(byte_data)
+
 
 # used by Amount serialize
 def array_set(count, value):
@@ -522,40 +540,53 @@ def array_set(count, value):
 
     return a
 
+
 class STInt8(SerializedType):
     def serialize(so, val):
         so.buffer.extend(convert_integer_to_bytearray(val, 1))
+
 
 class STInt16(SerializedType):
     def serialize(so, val):
         so.buffer.extend(convert_integer_to_bytearray(val, 2))
 
+
 class STInt32(SerializedType):
     def serialize(so, val):
         so.buffer.extend(convert_integer_to_bytearray(val, 4))
 
+
 # Use RegExp match function
 # perform case-insensitive matching
 # for HEX chars 0-9 and a-f
-def isHexInt64String(val):
+def is_hex_int64_str(val):
     return isinstance(val,str) and re.match('^[0-9A-F]{0,16}$i',val)
+
+
+def is_hex_str(val):
+    return isinstance(val,str) and re.match('^[0-9A-F]$i',val)
+
+
+def is_currency_str(val):
+    return isinstance(val,str) and re.match('^[A-Z0-9]{3}$i',val)
+
 
 # Convert int64 big number input
 # to HEX string, then serialize it.
 # -2,147,483,648 to +2,147,483,648
 class STInt64(SerializedType):
     def serialize888(so, val):
-        if isinstance(val,(int,float)):
+        if isinstance(val, (int, float)):
             val = math.floor(val)
-            if (val < 0):
+            if val < 0:
                 raise Exception('Negative value for unsigned Int64 is invalid.')
-            #bigNumObject = new BigInteger(String(val), 10)
+            # bigNumObject = new BigInteger(String(val), 10)
             bn = val
             big_num_in_hex_str = hex(bn).replace('0x', '')
             # a = new BN('dead', 16)
             # b = new BN('101010', 2)
         elif isinstance(val,str):
-            if not isHexInt64String(val):
+            if not is_hex_int64_str(val):
                 raise Exception('Not a valid hex Int64.')
 
             big_num_in_hex_str = val
@@ -568,33 +599,80 @@ class STInt64(SerializedType):
         while len(big_num_in_hex_str) < 16:
             big_num_in_hex_str = '0' + big_num_in_hex_str
 
-        serialize_hex(so, big_num_in_hex_str, True) #noLength = true
+        serialize_hex(so, big_num_in_hex_str, True)  # noLength = true
+
 
 class STHash256:
     def serialize(so, val):
         if isinstance(val,str) and re.match('^[0-9A-F]{0,16}$i',val) \
             and len(val) <= 64:
-            serialize_hex(so, val, True) #noLength = true
+            serialize_hex(so, val, True)  # noLength = true
         else:
             raise Exception('Invalid Hash256')
+
 
 class STHash160:
     def serialize(so, val):
         serialize_hex(so, hex_to_bytes(val), True)
 
+
 class STCurrency:
+    # Convert the input JSON format data INTO a BYTE array
+    def from_json_to_bytes(j, should_interpret_swt):
+        # return (new Currency()).parse_json(j, shouldInterpretSWT);
+        print("Handle input json format currency:" + j)
+
+        val = []
+        # return byte array representing currency code
+        i = 0
+        while i < 20:
+            val.extend(0)
+            i += 1
+
+        if isinstance(j, str):
+            # For Tum code with 40 chars, such as
+            # 800000000000000000000000A95EFD7EC3101635
+            # treat as HEX string, convert to the 20 bytes array
+            if is_hex_str(j) and len(j) == 40:
+                val = hex_to_bytes(j)
+            elif is_currency_str(j):
+                # For Tum code with 3 letters / digits, such as
+                # CNY, USD,
+                # treat
+                # var currencyCode = j.toUpperCase();
+                currency_code = j
+                if is_currency(currency_code):
+                    end = 14
+                    len = len(currency_code) - 1
+                    j = len
+                    while j >= 0:
+                        val[end - j] = ord(currency_code[len - j]) & 0xff
+                        j -= 1
+            else:
+                # Input not match the naming format
+                # Throw error
+                raise Exception("Input tum code not valid!")
+        else:
+            # TODO, follow the Tum code rules
+            print("Number")
+            raise Exception("Input tum code not valid!")
+
+        return val
+
     def serialize(so, val, swt_as_ascii):
-        currencyData = val.to_bytes()
-        if not currencyData:
-            raise Exception('Tried to serialize invalid/unimplemented currency type.')
-        so.append(currencyData)
+            currency_data = val.to_bytes()
+            print('currency_data is', currency_data)
+            if not currency_data:
+                raise Exception('Tried to serialize invalid/unimplemented currency type.')
+            so.append(currency_data)
+
 
 class STAmount:
     def serialize(so, val):
         """"""
         amount = Amount.from_json(val)
 
-        if (not amount.is_valid()):
+        if not amount.is_valid():
             raise Exception('Not a valid Amount object.')
 
         # Amount(64 - bit integer)
@@ -605,7 +683,7 @@ class STAmount:
         if amount.is_native():
             bn = amount._value
             valueHex = hex(bn).replace('0x', '')
-            #print('valueHex is ',valueHex)
+            # print('valueHex is ',valueHex)
 
             # Enforce correct length (64 bits)
             if len(valueHex) > 16:
@@ -637,15 +715,15 @@ class STAmount:
             # First bit: non - native
             hi |= 1 << 31
 
-            #print('amount._value is',amount._value)
-            #print('amount._offset is', amount._offset)
-            if (not amount.is_zero()):
+            # print('amount._value is',amount._value)
+            # print('amount._offset is', amount._offset)
+            if not amount.is_zero():
                 # Second bit: non - negative?
-                if (not amount.is_negative()):
+                if not amount.is_negative():
                     hi |= 1 << 30
 
-                #print('amount._offset is',amount._offset)
-                #print('amount._value is', amount._value)
+                # print('amount._offset is',amount._offset)
+                # print('amount._value is', amount._value)
 
                 # Next eight bits: offset / exponent
                 hi |= ((97 + amount._offset) & 0xff) << 22
@@ -657,7 +735,7 @@ class STAmount:
             arr = [hi, lo]
             l = len(arr)
 
-            if (l == 0):
+            if l == 0:
                 bl = 0
             else:
                 x = arr[l - 1]
@@ -669,13 +747,13 @@ class STAmount:
 
             i = 0
             while i < bl/8:
-                if ((i & 3) == 0):
+                if (i & 3) == 0:
                     tmp = arr[round(i / 4)]
-                #tmparray.append(tmp >> 24)
+                #  tmparray.append(tmp >> 24)
                 tmparray.append((tmp >> 24) % 256)
                 tmp <<= 8
                 i += 1
-            #print('tmparray is', tmparray)
+            # print('tmparray is', tmparray)
             if len(tmparray) > 8:
                 raise Exception('Invalid byte array length in AMOUNT value representation')
             valueBytes = tmparray
@@ -691,7 +769,8 @@ class STAmount:
 
             # Issuer(160 - bit hash)
             # so.append(amount.issuer().to_bytes())
-            so.append(decode_address(0,amount.issuer()))
+            so.append(decode_address(0, amount.issuer()))
+
 
 class STVL(SerializedType):
     def serialize(so, val):
@@ -700,18 +779,20 @@ class STVL(SerializedType):
         else:
             raise Exception('Unknown datatype.')
 
+
 class STAccount(SerializedType):
     def serialize(so, val):
-        byte_data = decode_address(0,val)
+        byte_data = decode_address(0, val)
         SerializedType.serialize_varint(so, len(byte_data))
         so.append(byte_data)
+
 
 class STArray(SerializedType):
     def serialize(so, val):
         i = 0
-        l = len(val)
-        while i < l:
-            keys= list(val[0]) #TODO
+        while i < len(val):
+            keys = list(val[i])
+            # print('keys is', keys)
 
             if len(keys) != 1:
                 raise Exception('Cannot serialize an array containing non-single-key objects')
@@ -719,10 +800,13 @@ class STArray(SerializedType):
             field_name = keys[0]
             value = val[i][field_name]
             serialize(so, field_name, value)
+            # print('field_name is', field_name)
+            # print('value is', value)
             i += 1
 
-        #Array ending marker
+        # Array ending marker
         STInt8.serialize(so, 0xf1)
+
 
 class STPathSet(SerializedType):
     typeBoundary = 0xff
@@ -730,54 +814,54 @@ class STPathSet(SerializedType):
     typeAccount = 0x01
     typeCurrency = 0x10
     typeIssuer = 0x20
+
     def serialize(self, so, val):
         i = 0
-        l = len(val)
-        while i < l:
+        while i < len(val):
             # Boundary
-            if (i):
+            if i:
                 STInt8.serialize(so, self.typeBoundary)
 
             j = 0
-            l2 = len(val[i])
-            while j < l2:
+            while j < len(val[i]):
                 entry = val[i][j]
-                #if (entry.hasOwnProperty('_value')) {entry = entry._value}
-                type = 0
+                # if (entry.hasOwnProperty('_value')) {entry = entry._value}
+                temp_type = 0
 
-                if (entry.account):
-                    type |= self.typeAccount
-                if (entry.currency):
-                    type |= self.typeCurrency
-                if (entry.issuer):
-                    type |= self.typeIssuer
+                if entry.account:
+                    temp_type |= self.typeAccount
+                if entry.currency:
+                    temp_type |= self.typeCurrency
+                if entry.issuer:
+                    temp_type |= self.typeIssuer
 
-                STInt8.serialize(so, type)
+                STInt8.serialize(so, temp_type)
 
-                if (entry.account):
-                    #so.append(UInt160.from_json(entry.account).to_bytes())
-                    so.append(decodeAddress(0,entry.account))
+                if entry.account:
+                    so.append(convert_address_to_bytes(entry.account))
 
-                if (entry.currency):
-                    currencyBytes = STCurrency.from_json_to_bytes(entry.currency, entry.non_native)
-                    so.append(currencyBytes)
+                if entry.currency:
+                    currency_bytes = STCurrency.from_json_to_bytes(entry.currency, entry.non_native)
+                    so.append(currency_bytes)
 
-                if (entry.issuer):
-                    #so.append(UInt160.from_json(entry.issuer).to_bytes())
-                    so.append(decode_address(0,entry.issuer))
+                if entry.issuer:
+                    #  so.append(UInt160.from_json(entry.issuer).to_bytes())
+                    so.append(convert_address_to_bytes(entry.issuer))
+
                 j += 1
             i += 1
 
         STInt8.serialize(so, self.typeEnd)
 
+
 class STVector256(SerializedType):
-    def serialize(so, val): #Assume val is an array of STHash256 objects.
+    def serialize(so, val):  # Assume val is an array of STHash256 objects.
         length_as_varint = SerializedType.serialize_varint(so, len(val) * 32)
         i = 0
-        l = len(val)
-        while i < l:
+        while i < len(val):
             STHash256.serialize(so, val[i])
             i += 1
+
 
 class STMemo(SerializedType):
     def serialize(so, val, no_marker=None):
@@ -789,7 +873,7 @@ class STMemo(SerializedType):
             if key[0] == key[0].lower():
                 return
 
-            #Check the field
+            # Check the field
             if not INVERSE_FIELDS_MAP.__contains__(key):
                 raise Exception('JSON contains unknown field: "' + key + '"')
 
@@ -799,7 +883,7 @@ class STMemo(SerializedType):
             keys = sort_fields(keys)
 
             # store that we're dealing with json
-            isJson = (val.__contains__('MemoFormat') and val.MemoFormat == 'json')
+            is_json = (val.__contains__('MemoFormat') and val.MemoFormat == 'json')
 
             i = 0
             while i < len(keys):
@@ -811,52 +895,53 @@ class STMemo(SerializedType):
                     # MemoData can be a JSON object, otherwise it's a string
                 elif key == 'MemoData':
                     if not isinstance(value,str):
-                        if (isJson):
+                        if is_json:
                             try:
-                                value = stringToHex(json.stringify(value))
+                                value = stringToHex(json.dumps(value))
                             except Exception:
                                 raise Exception('MemoFormat json with invalid JSON in MemoData field')
                         else:
                             raise Exception('MemoData can only be a JSON object with a valid json MemoFormat')
-                    elif isinstance(value,str):
+                    else:
                         value = stringToHex(value)
                 serialize(so, key, value)
                 i += 1
 
-            if (not no_marker):
-                #Object ending marker
+            if not no_marker:
+                # Object ending marker
                 STInt8.serialize(so, 0xe1)
 
+
 def serialize(so, field_name, value):
-    #so: a byte-stream to serialize into.
-    #field_name: a string for the field name ('LedgerEntryType' etc.)
-    #value: the value of that field.
+    # so: a byte-stream to serialize into.
+    # field_name: a string for the field name ('LedgerEntryType' etc.)
+    # value: the value of that field.
     field_coordinates = INVERSE_FIELDS_MAP[field_name]
     type_bits = field_coordinates[0]
     field_bits = field_coordinates[1]
 
     if type_bits < 16:
-        a= type_bits << 4
+        a = type_bits << 4
     else:
         a = 0
     if field_bits < 16:
         b = field_bits
     else:
         b = 0
-    tag_byte = a|b
+    tag_byte = a | b
 
     if isinstance(value,str):
-        if (field_name == 'LedgerEntryType'):
+        if field_name == 'LedgerEntryType':
             values = get_ledger_entry_type(value)
-        elif (field_name == 'TransactionResult'):
-            values = get_transaction_type(value)#binformat.ter[value]
+        elif field_name == 'TransactionResult':
+            values = get_transaction_type(value)  # binformat.ter[value]
 
     STInt8.serialize(so, tag_byte)
 
-    if (type_bits >= 16):
+    if type_bits >= 16:
         STInt8.serialize(so, type_bits)
 
-    if (field_bits >= 16):
+    if field_bits >= 16:
         STInt8.serialize(so, field_bits)
 
     # Get the serializer class (ST...)
@@ -865,24 +950,24 @@ def serialize(so, field_name, value):
         serialized_object_type = 'STMemo'
     else:
         # for a field based on the type bits.
-        serialized_object_type = 'ST'+ TYPES_MAP[type_bits]
+        serialized_object_type = 'ST' + TYPES_MAP[type_bits]
 
     try:
-        #print('so.buffer is', so.buffer)
-        #print('value is', value)
-        #print('field_name is', field_name)
-        #print('call serialized_object_type',serialized_object_type)
+        # print('so.buffer is', so.buffer)
+        # print('value is', value)
+        # print('field_name is', field_name)
+        # print('call serialized_object_type',serialized_object_type)
         globals().get(serialized_object_type).serialize(so, value)
-    except Exception:
+    except:
+        print("found exception on serialize", field_name, serialized_object_type)
         Exception(' (' + field_name + ')')
 
 
-
 class STObject(SerializedType):
-    def serialize(so, val, no_marker):
+    def serialize(so, val, no_marker=None):
         keys = []
         for key in val:
-            # Ignore lowerelif structure == field names - they're non-serializable fields by
+            # Ignore lower elif structure == field names - they're non-serializable fields by
             # convention.
             if key[0] == key[0].lower():
                 return
@@ -894,6 +979,7 @@ class STObject(SerializedType):
 
         # Sort fields
         keys = sort_fields(keys)
+        # print('keys is', keys)
 
         i = 0
         while i < len(keys):
@@ -901,27 +987,28 @@ class STObject(SerializedType):
             i += 1
 
         if not no_marker:
-            #Object ending marker
+            # Object ending marker
             STInt8.serialize(so, 0xe1)
 
-def QuickSort(arr, firstIndex, lastIndex):
-    if firstIndex < lastIndex:
-        divIndex = Partition(arr, firstIndex, lastIndex)
 
-        QuickSort(arr, firstIndex, divIndex)
-        QuickSort(arr, divIndex + 1, lastIndex)
+def quick_sort(arr, first_index, last_index):
+    if first_index < last_index:
+        div_index = partition(arr, first_index, last_index)
+
+        quick_sort(arr, first_index, div_index)
+        quick_sort(arr, div_index + 1, last_index)
     else:
         return
 
 
-def Partition(arr, firstIndex, lastIndex):
-    i = firstIndex - 1
-    for j in range(firstIndex, lastIndex):
-        #if arr[j] <= arr[lastIndex]:
-        if (sort_field_compare(arr[j],arr[lastIndex])<0):
+def partition(arr, first_index, last_index):
+    i = first_index - 1
+    for j in range(first_index, last_index):
+        # if arr[j] <= arr[last_index]:
+        if sort_field_compare(arr[j], arr[last_index]) < 0:
             i = i + 1
             arr[i], arr[j] = arr[j], arr[i]
-    arr[i + 1], arr[lastIndex] = arr[lastIndex], arr[i + 1]
+    arr[i + 1], arr[last_index] = arr[last_index], arr[i + 1]
     return i
 
 
@@ -940,6 +1027,7 @@ def sort_field_compare(a, b):
     else:
         return a_field_bits - b_field_bits
 
+
 def sort_fields(keys):
-    QuickSort(keys, 0, len(keys) - 1)
+    quick_sort(keys, 0, len(keys) - 1)
     return keys
