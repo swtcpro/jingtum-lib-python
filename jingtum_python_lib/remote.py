@@ -434,16 +434,13 @@ class Remote:
         tx.tx_json['Method'] = 0
         tx.tx_json['Payload'] = payload
         tx.tx_json['Args'] = []
-        class newobj:
-            def __init__(self):
-                self.Arg = ''
 
         if 'params' in vars():
             for i in params:
-                obj = {}
+                obj = dict()
                 obj['Arg'] = {'Parameter': str_to_hex(i)}
                 tx.tx_json['Args'].append(obj)
-        print(tx.tx_json['Args'])
+        # print(tx.tx_json['Args'])
 
         return tx
 
@@ -493,7 +490,7 @@ class Remote:
             if not isinstance(i, str):
                 tx.tx_json['params'] = Exception('params must be string')
                 return tx
-            obj = {}
+            obj = dict()
             obj['Arg'] = {'Parameter': str_to_hex(i)}
             tx.tx_json['Args'].append(obj)
 
@@ -549,7 +546,6 @@ class Remote:
     @staticmethod
     def parse_ledger(data, req):
         if isinstance(data, dict) and data['callback']:
-            data = data['callback']
             data = data['callback']
             data = json.loads(data)
             if data['status'] == 'success':
