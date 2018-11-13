@@ -58,38 +58,38 @@ class RemoteTest(unittest.TestCase):
     def test_transaction(self):
         remote = Remote()
         if not isinstance(remote.connect(), Exception):
-            req = remote.request_tx({'hash': '82C2C652431B63179E7CC775C3C1DBEC7AF1A6E91CC5A2671B195C19C76D701C'})
+            req = remote.request_tx({'hash': 'BDE5FAA4F287353E65B3AC603F538DE091F1D8F4723A120BD7D930C5C4668FE2111'})
             result = remote.parse_transaction(req.submit())
             logger.info(result)
 
     def test_request_account_info(self):
         remote = Remote()
         if not isinstance(remote.connect(), Exception):
-            req = remote.request_account_info({'account': 'jsMwaJ7EA4y7QgdvQzaD2CqzQQN4v7vLFK'})
+            req = remote.request_account_info({'account': 'jsMwaJ7EA4y7QgdvQzaD2CqzQQN4v7vLFK111'})
             result = remote.parse_account_info(req.submit())
             logger.info(result)
 
     def test_request_account_tums(self):
         remote = Remote()
         if not isinstance(remote.connect(), Exception):
-            req = remote.request_account_tums({'account': 'jEkffY8XtkEtkUKyYQT1Fv7MDp3grAtwdH'})
+            req = remote.request_account_tums({'account': 'jsMwaJ7EA4y7QgdvQzaD2CqzQQN4v7vLFK'})
             result = remote.parse_account_tums(req.submit())
             logger.info(result)
 
     def test_request_account_relations(self):
         remote = Remote()
         if not isinstance(remote.connect(), Exception):
-            req = remote.request_account_relations({'account': 'jEkffY8XtkEtkUKyYQT1Fv7MDp3grAtwdH',
+            req = remote.request_account_relations({'account': 'jB7rxgh43ncbTX4WeMoeadiGMfmfqY2xLZ123',
                                                     'type': 'trust'})
             result = remote.parse_request_account_relations(req.submit())
             logger.info(result)
 
-            req = remote.request_account_relations({'account': 'jEkffY8XtkEtkUKyYQT1Fv7MDp3grAtwdH',
+            req = remote.request_account_relations({'account': 'jsMwaJ7EA4y7QgdvQzaD2CqzQQN4v7vLFK',
                                                     'type': 'authorize'})
             result = remote.parse_request_account_relations(req.submit())
             logger.info(result)
 
-            req = remote.request_account_relations({'account': 'jEkffY8XtkEtkUKyYQT1Fv7MDp3grAtwdH',
+            req = remote.request_account_relations({'account': 'jsMwaJ7EA4y7QgdvQzaD2CqzQQN4v7vLFK',
                                                     'type': 'freeze'})
             result = remote.parse_request_account_relations(req.submit())
             logger.info(result)
@@ -97,14 +97,14 @@ class RemoteTest(unittest.TestCase):
     def test_request_account_offers(self):
         remote = Remote()
         if not isinstance(remote.connect(), Exception):
-            req = remote.request_account_offers({'account': 'jJvkUPnBNQ4Wy5QGBKwMa8ftS5s9EDYXER'})
+            req = remote.request_account_offers({'account': 'jJvkUPnBNQ4Wy5QGBKwMa8ftS5s9EDYXER888'})
             result = remote.parse_request_account_offers(req.submit())
             logger.info(result)
 
     def test_request_account_tx(self):
         remote = Remote()
         if not isinstance(remote.connect(), Exception):
-            req = remote.request_account_tx({'account': 'jsMwaJ7EA4y7QgdvQzaD2CqzQQN4v7vLFK',
+            req = remote.request_account_tx({'account': 'jsMwaJ7EA4y7QgdvQzaD2CqzQQN4v7vLFK123',
                                              'limit': 1})
             temp = req.submit()
             result = remote.parse_account_tx_info(temp, req)
@@ -113,12 +113,13 @@ class RemoteTest(unittest.TestCase):
     def test_request_orderbook(self):
         remote = Remote(local_sign=True)
         if not isinstance(remote.connect(), Exception):
-            req = remote.request_order_book({'gets': {'currency': 'SWT', 'issuer': ''},
-                  'pays': {'currency': 'CNY', 'issuer': 'jBciDE8Q3uJjf111VeiUNM775AMKHEbBLS'},
-                 'limit':20})
+            req = remote.request_order_book({'gets': {'currency': '1SWT', 'issuer': ''},
+                'pays': {'currency': 'CNY', 'issuer': 'jBciDE8Q3uJjf111VeiUNM775AMKHEbBLS'},
+                'limit': 1})
             temp = req.submit()
             result = remote.parse_orderbook_info(temp)
             logger.info(result)
+
 
 if __name__ == '__main__':
     unittest.main()
