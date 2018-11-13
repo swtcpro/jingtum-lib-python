@@ -1,20 +1,6 @@
-#
- #or its affiliates. All rights reserved.
- # Licensed under the Apache License, Version 2.0 (the "License").
- # You may not use self file except Exception as  in compliance with
- # the License. A copy of the License is located at
- #
- # http:#www.apache.org/licenses/LICENSE-2.0
- #
- # Unless required by applicable lawor agreed to in writing, software
- # distributed under the License is distributed on an "AS IS" BASIS,
- # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressor implied.
- # See the License for the specific language governing permissions and
- # limitations under the License.
- #
- # Serializer Class
- # Convert the input JSON format commands to
- # Hex value for local sign operation.
+# Serializer Class
+# Convert the input JSON format commands to
+# Hex value for local sign operation.
 
 import hashlib
 import copy
@@ -24,8 +10,8 @@ from jingtum_python_baselib.typesutils import *
 from jingtum_python_baselib.keypairs import hash512
 
 REQUIRED = 0
-OPTIONAL  = 1
-DEFAULT =  2
+OPTIONAL = 1
+DEFAULT = 2
 
 base = [
     ['TransactionType', REQUIRED],
@@ -41,30 +27,40 @@ base = [
 ]
 
 TRANSACTION_TYPES = {
-    "AccountSet": [[3]+base+
+    "AccountSet": [[3] + base +
         [['EmailHash', OPTIONAL],
         ['WalletLocator', OPTIONAL],
         ['WalletSize', OPTIONAL],
         ['MessageKey', OPTIONAL],
         ['Domain', OPTIONAL],
         ['TransferRate', OPTIONAL]]],
-    "TrustSet": [[20]+ base +
+    "TrustSet": [[20] + base +
         [['LimitAmount', OPTIONAL],
         ['QualityIn', OPTIONAL],
         ['QualityOut', OPTIONAL]]
     ],
-    "OfferCreate": [[7]+ base +
+    "RelationSet": [[21] + base +
+        [['Target', REQUIRED],
+        ['RelationType', REQUIRED],
+        ['LimitAmount', OPTIONAL]]
+    ],
+    "RelationDel": [[22] + base +
+        [['Target', REQUIRED],
+        ['RelationType', REQUIRED],
+        ['LimitAmount', OPTIONAL]]
+    ],
+    "OfferCreate": [[7] + base +
         [['TakerPays', REQUIRED],
         ['TakerGets', REQUIRED],
         ['Expiration', OPTIONAL]]
     ],
-    "OfferCancel": [[8]+ base +
+    "OfferCancel": [[8] + base +
         [['OfferSequence', REQUIRED]]
     ],
-    "SetRegularKey": [[5]+ base +
+    "SetRegularKey": [[5] + base +
         [['RegularKey', REQUIRED]]
     ],
-    "Payment": [[0]+ base +
+    "Payment": [[0] + base +
         [['Destination', REQUIRED],
         ['Amount', REQUIRED],
         ['SendMax', OPTIONAL],
@@ -72,7 +68,7 @@ TRANSACTION_TYPES = {
         ['InvoiceID', OPTIONAL],
         ['DestinationTag', OPTIONAL]]
     ],
-    "Contract": [[9]+ base +
+    "Contract": [[9] + base +
         [['Expiration', REQUIRED],
         ['BondAmount', REQUIRED],
         ['StampEscrow', REQUIRED],
@@ -82,20 +78,20 @@ TRANSACTION_TYPES = {
         ['RemoveCode', OPTIONAL],
         ['ExpireCode', OPTIONAL]]
     ],
-    "RemoveContract": [[10]+ base +
+    "RemoveContract": [[10] + base +
         [['Target', REQUIRED]]
     ],
-    "EnableFeature": [[100]+ base +
+    "EnableFeature": [[100] + base +
         [['Feature', REQUIRED]]
     ],
-    "SetFee": [[101]+ base +
+    "SetFee": [[101] + base +
         [['Features', REQUIRED],
         ['BaseFee', REQUIRED],
         ['ReferenceFeeUnits', REQUIRED],
         ['ReserveBase', REQUIRED],
         ['ReserveIncrement', REQUIRED]]
     ],
-    'ConfigContract': [[30]+base+ [
+    'ConfigContract': [[30] + base + [
         ['Method', REQUIRED],
         ['Payload', OPTIONAL],
         ['Destination', OPTIONAL],
@@ -113,7 +109,7 @@ sleBase = [
 ]
 
 LEDGER_ENTRY_TYPES = {
-    "AccountRoot": [[97]+ sleBase +
+    "AccountRoot": [[97] + sleBase +
         [['Sequence', REQUIRED],
         ['PreviousTxnLgrSeq', REQUIRED],
         ['TransferRate', OPTIONAL],
@@ -129,7 +125,7 @@ LEDGER_ENTRY_TYPES = {
         ['Account', REQUIRED],
         ['RegularKey', OPTIONAL]]
     ],
-    "Contract": [[99]+ sleBase +
+    "Contract": [[99] + sleBase +
         [['PreviousTxnLgrSeq', REQUIRED],
         ['Expiration', REQUIRED],
         ['BondAmount', REQUIRED],
@@ -142,7 +138,7 @@ LEDGER_ENTRY_TYPES = {
         ['Account', REQUIRED],
         ['Owner', REQUIRED],
         ['Issuer', REQUIRED]]],
-    "DirectoryNode": [[100]+ sleBase +
+    "DirectoryNode": [[100] + sleBase +
         [['IndexNext', OPTIONAL],
         ['IndexPrevious', OPTIONAL],
         ['ExchangeRate', OPTIONAL],
@@ -153,30 +149,30 @@ LEDGER_ENTRY_TYPES = {
         ['TakerGetsCurrency', OPTIONAL],
         ['TakerGetsIssuer', OPTIONAL],
         ['Indexes', REQUIRED]]],
-    "EnabledFeatures": [[102]+ sleBase +
+    "EnabledFeatures": [[102] + sleBase +
         [['Features', REQUIRED]]],
-    "FeeSettings": [115]+sleBase+
+    "FeeSettings": [115] + sleBase +
         [['ReferenceFeeUnits', REQUIRED],
         ['ReserveBase', REQUIRED],
         ['ReserveIncrement', REQUIRED],
         ['BaseFee', REQUIRED],
         ['LedgerIndex', OPTIONAL]],
-    "GeneratorMap": [[103]+ sleBase +
+    "GeneratorMap": [[103] + sleBase +
         [['Generator', REQUIRED]]],
-    "LedgerHashes": [[104]+ sleBase +
+    "LedgerHashes": [[104] + sleBase +
         [['LedgerEntryType', REQUIRED],
         ['Flags', REQUIRED],
         ['FirstLedgerSequence', OPTIONAL],
         ['LastLedgerSequence', OPTIONAL],
         ['LedgerIndex', OPTIONAL],
         ['Hashes', REQUIRED]]],
-    "Nickname": [[110],sleBase,
+    "Nickname": [[110] + sleBase,
         [['LedgerEntryType', REQUIRED],
         ['Flags', REQUIRED],
         ['LedgerIndex', OPTIONAL],
         ['MinimumOffer', OPTIONAL],
         ['Account', REQUIRED]]],
-    "Offer": [[111]+ sleBase +
+    "Offer": [[111] + sleBase +
         [['LedgerEntryType', REQUIRED],
         ['Flags', REQUIRED],
         ['Sequence', REQUIRED],
@@ -190,7 +186,7 @@ LEDGER_ENTRY_TYPES = {
         ['TakerPays', REQUIRED],
         ['TakerGets', REQUIRED],
         ['Account', REQUIRED]]],
-    "SkywellState": [[114]+ sleBase +
+    "SkywellState": [[114] + sleBase +
         [['LedgerEntryType', REQUIRED],
         ['Flags', REQUIRED],
         ['PreviousTxnLgrSeq', REQUIRED],
@@ -214,39 +210,37 @@ METADATA = [
     ['AffectedNodes', REQUIRED]
 ]
 
-#
- # convert a HEX to dec number
- # 0-9 to the same digit
- # a-f, A-F to 10 - 15,
- # all others to 0
-#
+
+# convert a HEX to dec number
+# 0-9 to the same digit
+# a-f, A-F to 10 - 15,
+# all others to 0
 def get_dec_from_hexchar(self,in_char):
     if len(in_char) > 1:
         return 0
     asc_code = in_char.charCodeAt(0)
     if asc_code > 48:
         if asc_code < 58:
-            #digit 1-9
+            # digit 1-9
             return asc_code - 48
 
         else:
             if asc_code > 64:
                 if asc_code < 91:
-                #letter A-F
+                    # letter A-F
                     return asc_code - 55
-                else :
+                else:
                     if asc_code > 96 and asc_code < 123:
                         return asc_code - 87
 
     return 0
 
 
-
-#HEX string to bytes
-#for a string, returns as byte array
-#Input is not even, add 0 to the end.
-#a0c -> a0 c0
-def hex_str_to_byte_array(self,in_str):
+# HEX string to bytes
+# for a string, returns as byte array
+# Input is not even, add 0 to the end.
+# a0c -> a0 c0
+def hex_str_to_byte_array(self, in_str):
     out = []
     str = in_str.replace("/\s|0x/g", "")
     for i in range(0,len(str),2):
@@ -264,21 +258,22 @@ def sort_fields(keys):
     keys.sort(key=sort_key)
     return keys
 
+
 def get_char_from_num(in_num):
     if (in_num >= 0 and in_num < 10):
         return in_num + 48 #0-9
     if (in_num >= 10 and in_num < 16):
         return in_num + 55 #A-F
 
- # buf is a byte array
- # pointer is an integer index of the buf
-#
+
+# buf is a byte array
+# pointer is an integer index of the buf
 class Serializer:
     def __init__(self,buf):
-        if isinstance(buf,dict) or isinstance(type(buf),bytes):
+        if isinstance(buf, dict) or isinstance(type(buf),bytes):
             self.buffer = buf
         elif isinstance(buf,str):
-            self.buffer = hex_str_to_byte_array(buf)
+            self.buffer = hex_str_to_byte_array(buf)  # no use here
         elif not buf:
             self.buffer = []
         else:
@@ -286,7 +281,7 @@ class Serializer:
 
         self.pointer = 0
 
-    #Serialize the object
+    # Serialize the object
     def serialize(self, typedef, obj):
         # Serialize object without end marker
         STObject.serialize(self, obj, True)
@@ -297,8 +292,8 @@ class Serializer:
     def lookup_type_le(id):
         return LEDGER_ENTRY_TYPES[id]
 
-     # convert the input JSON to a byte array
-     # as buffer
+    # convert the input JSON to a byte array
+    # as buffer
     def from_json(self,obj):
         # Create a copy of the object so we don't modify the original one
         obj = copy.deepcopy(obj)
@@ -330,7 +325,7 @@ class Serializer:
             obj['LedgerEntryType'] = typedef.pop(0)
 
         elif isinstance(obj['AffectedNodes'],object):
-            typedef = METADATA  #binformat
+            typedef = METADATA  # binformat
         else:
             raise Exception('Object to be serialized must contain either' +
                 ' TransactionType, LedgerEntryType or AffectedNodes.')
@@ -342,17 +337,17 @@ class Serializer:
     def to_hex(self):
         return bytes_to_hex(self.buffer)
 
-    #Append the input bytes array to
-    #the internal buffer and set the pointer
-    #to the end.
-    def append(self, bytes):
-        if isinstance(bytes,Serializer):
-            bytes = bytes.buffer
+    # Append the input bytes array to
+    # the internal buffer and set the pointer
+    # to the end.
+    def append(self, input_bytes):
+        if isinstance(input_bytes, Serializer):
+            input_bytes = input_bytes.buffer
 
-        self.buffer.extend(bytes)
+        self.buffer.extend(input_bytes)
 
-    #Hash data using SHA - 512 and return the first 256 bits
-    #in HEX string format.
+    # Hash data using SHA - 512 and return the first 256 bits
+    # in HEX string format.
     def hash(self, prefix):
         sign_buffer = Serializer(None)
         # Add hashing prefix
