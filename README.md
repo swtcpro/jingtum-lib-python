@@ -1,6 +1,9 @@
 # jingtum-python-lib
 jingtum-python-lib to be used for interacting with jingtum blockchain network. This is the python version.
 
+## Version info
+version 2.0.0 add contract support
+
 ## Source code  
 * jingtum_python_lib - The source codes of jingtum lib.
 * jingtum_python_baselib - The source codes of jingtum base lib.
