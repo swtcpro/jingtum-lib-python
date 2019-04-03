@@ -93,7 +93,7 @@ class Amount:
                             # TODO, need to find a better way for extracting the exponent and digits
                             vpow = float(in_json['value'])
                             vpow = str("%e"%vpow)
-                            vpow = vpow[vpow.rfind("e") + 1:].replace("0", "")
+                            vpow = vpow[vpow.rfind("e") + 1:]
                             offset = 15 - int(vpow)
                             factor = math.pow(10, offset)
                             self._value = int(float(in_json['value'])*factor)
@@ -112,6 +112,7 @@ class Amount:
     # with precision
     def parse_swt_value(self, j):
         if isinstance(j, str):
+            j = '%.6f' % float(j)
             m = re.match('^(-?)(\d*)(\.\d{0,6})?$', j)
         if m:
             if m.group(3) is None:
